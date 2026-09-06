@@ -14,4 +14,5 @@ if [[ "${1:-}" == "--ui" ]]; then
 <plist version="1.0"><dict><key>CFBundleIdentifier</key><string>local.tomato-glass.smoke</string><key>CFBundleExecutable</key><string>PomodoroSmoke</string></dict></plist>
 PLIST
     "$testapp/Contents/MacOS/PomodoroSmoke"
+    sips -Z 760 docs/screenshot.png >/dev/null
 fi
