@@ -26,8 +26,8 @@ SIGNING_IDENTITY='Developer ID Application: YOUR NAME (TEAMID)' ./scripts/packag
 
 1. 创建公开仓库，提交源码、测试、文档、壁纸和许可证。不要提交 .build、.app、DMG、ZIP、个人偏好。
 2. 配置 topics 和中英文简介。
-3. 推送 `v1.5.1` 标签会触发 `.github/workflows/release.yml`，运行测试并构建 DMG，创建 **draft release**。
-4. 查看构建结果、SHA-256、Release 的签名说明和壁纸许可后，发布草稿。
+3. 推送 `v1.5.1` 标签会触发 `.github/workflows/release.yml`，运行测试并构建 DMG，发布 Release（当前已授权公开发布）。
+4. 发布前核对版本、签名说明与壁纸许可；推送版本标签即表示确认公开发布。工作流测试和构建成功后上传安装包及 SHA-256。
 
 默认 Actions 构建为未公证的 ad-hoc 版本，不应标记为已通过 Apple 安全认证。如上传另行公证的包，替换对应 DMG 和校验文件，并准确更新 Release 说明。
 
