@@ -70,8 +70,10 @@ extension AppDelegate {
             picker.widthAnchor.constraint(equalToConstant: 190).isActive = true
             picker.selectItem(at: selectedTheme)
             themePicker = picker
+            let motion = NSButton(checkboxWithTitle: "动态雨滴与涟漪", target: self, action: #selector(toggleMotion(_:)))
+            motion.state = motionEnabled ? .on : .off
             let options = glassStack([glassLabel("我的空间", size: 19), glassLabel("自定义时长", size: 12, muted: true), durationRow, error,
-                opacityText, slider, picker, imageButton], spacing: 13)
+                opacityText, slider, picker, motion, imageButton], spacing: 13)
             let optionsCard = GlassCard(content: options, padding: 20)
             optionsCard.widthAnchor.constraint(equalToConstant: 234).isActive = true
             let cards = glassStack([focusCard, optionsCard], vertical: false, spacing: 18)
@@ -109,6 +111,7 @@ extension AppDelegate {
         settings?.makeKeyAndOrderFront(nil)
         settings?.orderFrontRegardless()
         settings?.makeFirstResponder(minutesField)
+        background?.syncAnimation()
     }
 
     @objc func chooseBackground() {
@@ -123,6 +126,7 @@ extension AppDelegate {
             UserDefaults.standard.set(url.path, forKey: "backgroundImagePath")
             UserDefaults.standard.set(2, forKey: "backgroundTheme")
             self?.themePicker?.selectItem(at: 2)
+            self?.background?.dynamicEnabled = false
         }
     }
 
@@ -131,7 +135,15 @@ extension AppDelegate {
         return value.map { (0...2).contains($0) ? $0 : 0 } ?? (UserDefaults.standard.string(forKey: "backgroundImagePath") == nil ? 0 : 2)
     }
 
+    var motionEnabled: Bool { (UserDefaults.standard.object(forKey: "wallpaperMotion") as? Bool) ?? true }
+
+    @objc func toggleMotion(_ sender: NSButton) {
+        UserDefaults.standard.set(sender.state == .on, forKey: "wallpaperMotion")
+        background?.dynamicEnabled = selectedTheme == 0 && motionEnabled
+    }
+
     func applyBackground() {
+        defer { background?.dynamicEnabled = selectedTheme == 0 && motionEnabled }
         switch selectedTheme {
         case 2:
             background?.picture = UserDefaults.standard.string(forKey: "backgroundImagePath").flatMap { NSImage(contentsOfFile: $0) }

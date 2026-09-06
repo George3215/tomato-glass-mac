@@ -8,7 +8,7 @@ Tomato Glass is a lightweight, offline, native macOS Pomodoro timer built with S
 
 ## 下载与安装 / Download & install
 
-前往本仓库 **Releases**，下载 `Tomato-Glass-1.4.0-universal.dmg`。
+前往本仓库 **Releases**，下载 `Tomato-Glass-1.5.0-universal.dmg`。
 
 1. 双击 DMG。
 2. 将 `番茄钟.app` 拖到磁盘窗口中的 `Applications` 文件夹。
@@ -29,12 +29,12 @@ Release 附带 `SHA256SUMS.txt`，下载后可用 `shasum -a 256 -c SHA256SUMS.t
 | 窗口常驻 | 开始后窗口保持打开；暂停、继续、重置均可直接操作 |
 | 时间到提醒 | 原生弹窗和提示音；可选择休息或再专注 |
 | 透明度 | 0%–80%，主窗口与提醒弹窗同步，自动保存 |
-| 蝴蝶主题 | 内置 Internal Beyond 的冰蓝蝴蝶玻璃壁纸 |
+| 蝴蝶主题 | 内置 Internal Beyond 冰蓝蝴蝶壁纸与动态雨滴、水面涟漪 |
 | 壁纸展示 | 隐藏控制卡片，保留壁纸和返回按钮；计时继续 |
 | 自定义背景 | PNG / JPEG / HEIC / TIFF，也可切回粉紫渐变 |
 | 状态恢复 | 重启恢复截止时间或暂停状态；到期后补提醒 |
 
-蝴蝶展示使用原始静态图片与原生玻璃叠层。**未移植** Internal Beyond 的擦雾、涟漪、画笔、AI 对话或游戏引擎；不将应用设置为 macOS 系统桌面壁纸。
+蝴蝶动态壁纸移植 Internal Beyond 的水波算法：雨滴落下、水面折射、点击和拖动扰动涟漪。蝴蝶图案本身来自静态图片，不是单独的飞行动画。右侧“动态雨滴与涟漪”开关可恢复静态；关闭、最小化或完全遮挡窗口后暂停渲染，遵循 macOS“减少动态效果”。在“壁纸展示”模式下更容易体验交互。未移植擦雾、画笔、AI 对话或游戏引擎；不更改系统桌面壁纸。
 
 ## 使用边界与隐私
 
@@ -66,7 +66,8 @@ Sources/
   AppDelegate.swift   # 生命周期、菜单栏、提醒及动作
   Countdown.swift     # 独立计时状态机
   WindowUI.swift      # 控制窗口、主题选择、壁纸展示
-  GlassTheme.swift    # 原生背景和玻璃控件
+  GlassTheme.swift    # 原生背景、动画生命周期和玻璃控件
+  RippleWater.swift   # 上游水波算法的原生移植（非商业许可）
 Resources/
   Wallpapers/         # 已署名的第三方蝴蝶图片
   Licenses/           # 上游图像许可证
@@ -92,7 +93,7 @@ scripts/              # 图标生成、测试与 DMG 打包
 
 ## 许可与致谢 / License & attribution
 
-自有 Swift 源码与脚本按 [MIT](LICENSE) 提供。内置壁纸 **不适用 MIT**：
+自有 Swift 源码与脚本按 [MIT](LICENSE) 提供。`Sources/RippleWater.swift` 为上游算法移植，采用 **PolyForm Noncommercial 1.0.0**，不适用 MIT。内置壁纸也 **不适用 MIT**：
 
 **Sui — Internal Beyond**, Copyright © 2025–2026 Sui。来源：[InternalBeyond](https://github.com/Sui-IB/InternalBeyond)。图片遵循 **CC BY-NC-SA 4.0**，仅限非商业用途；原图未改字节，显示时做比例裁切和暗色覆盖。署名、固定版本与 SHA-256 见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。包含该壁纸的安装包按免费、非商业用途分发；商用须另行获得权利人许可。
 

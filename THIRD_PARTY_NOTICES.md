@@ -17,3 +17,11 @@
 The bundled wallpaper is for noncommercial use. Paid distribution or commercial use of this asset requires separate permission from its rights holder. No Internal Beyond chat/game code, branding or AI API features are included.
 
 应用源码另见 LICENSE；上述第三方图像不适用源码许可证。安装包内已保留壁纸署名及原始许可说明。
+
+## Dynamic water simulation / 动态水波算法
+
+Required Notice: Copyright © 2025–2026 Sui. Internal Beyond (https://github.com/Sui-IB/InternalBeyond)
+
+`Sources/RippleWater.swift` adapts the `gw-ripple` JavaScript block in InternalBeyond.html from the same upstream revision identified above. It ports damped wave propagation, refraction shading, rain impacts and pointer disturbances to Swift/AppKit. Changes include native drawing and coordinates, a fixed 30 Hz update, and app-controlled rendering lifecycle. It does not port the whole website or the fog-painting module.
+
+License: **PolyForm Noncommercial License 1.0.0**, full terms in `Resources/Licenses/InternalBeyond-CODE.md`. The MIT license does not apply to this adapted file. This contribution to the adapted simulation is distributed under the same noncommercial terms. The source screenshot is an adapted wallpaper composition under CC BY-NC-SA 4.0.

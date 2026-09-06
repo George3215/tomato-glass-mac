@@ -1,7 +1,67 @@
 import AppKit
 
 final class DreamBackground: NSView {
-    var picture: NSImage? { didSet { needsDisplay = true } }
+    var picture: NSImage? { didSet { rebuildWater() } }
+    var dynamicEnabled = false { didSet { rebuildWater() } }
+    private(set) var water: RippleWater?
+    private(set) var animationTimer: Timer?
+    private var observers: [NSObjectProtocol] = []
+
+    func rebuildWater() {
+        water = dynamicEnabled ? picture.flatMap { RippleWater(image: $0, size: bounds.size) } : nil
+        needsDisplay = true
+        syncAnimation()
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+        observers = []
+        if let window {
+            for name in [NSWindow.didChangeOcclusionStateNotification, NSWindow.didMiniaturizeNotification,
+                         NSWindow.didDeminiaturizeNotification, NSWindow.willCloseNotification] {
+                observers.append(NotificationCenter.default.addObserver(forName: name, object: window, queue: .main) { [weak self] note in
+                    if note.name == NSWindow.willCloseNotification { self?.stopAnimation() }
+                    else { self?.syncAnimation() }
+                })
+            }
+        }
+        syncAnimation()
+    }
+
+    func stopAnimation() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+    }
+
+    func syncAnimation() {
+        let visible = window?.isVisible == true && window?.isMiniaturized == false && window?.occlusionState.contains(.visible) == true
+        let allowed = visible && dynamicEnabled && water != nil && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        guard allowed else { stopAnimation(); needsDisplay = true; return }
+        guard animationTimer == nil else { return }
+        let timer = Timer(timeInterval: 1.0/30, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { self.stopAnimation(); self.needsDisplay = true; return }
+            self.water?.advance()
+            self.needsDisplay = true
+        }
+        timer.tolerance = 0.005
+        RunLoop.main.add(timer, forMode: .common)
+        animationTimer = timer
+    }
+
+    override func mouseDown(with event: NSEvent) { disturb(event) }
+    override func mouseDragged(with event: NSEvent) { disturb(event) }
+    private func disturb(_ event: NSEvent) {
+        guard dynamicEnabled, let water, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        water.poke(x: point.x/bounds.width*Double(water.width), y: (1-point.y/bounds.height)*Double(water.height))
+    }
+
+    deinit {
+        animationTimer?.invalidate()
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
     override func draw(_ dirtyRect: NSRect) {
         NSGradient(colors: [NSColor(srgbRed: 0.13, green: 0.12, blue: 0.29, alpha: 1),
                             NSColor(srgbRed: 0.46, green: 0.29, blue: 0.59, alpha: 1),
@@ -10,6 +70,7 @@ final class DreamBackground: NSView {
             let scale = max(bounds.width / picture.size.width, bounds.height / picture.size.height)
             let size = NSSize(width: picture.size.width * scale, height: picture.size.height * scale)
             picture.draw(in: NSRect(x: (bounds.width-size.width)/2, y: (bounds.height-size.height)/2, width: size.width, height: size.height))
+            if dynamicEnabled && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { water?.draw(in: bounds) }
             NSColor.black.withAlphaComponent(0.23).setFill()
             bounds.fill()
         } else {

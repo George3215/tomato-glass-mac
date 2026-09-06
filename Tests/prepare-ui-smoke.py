@@ -4,10 +4,13 @@ source = Path("Sources/AppDelegate.swift").read_text()
 tests = r''' 
     func runUISmoke() {
         let original = countdown
+        let savedMotion = UserDefaults.standard.object(forKey: "wallpaperMotion")
         let savedTheme = UserDefaults.standard.object(forKey: "backgroundTheme")
         let savedTransparency = UserDefaults.standard.object(forKey: "windowTransparency")
         defer {
             countdown = original
+            if let savedMotion { UserDefaults.standard.set(savedMotion, forKey: "wallpaperMotion") }
+            else { UserDefaults.standard.removeObject(forKey: "wallpaperMotion") }
             if let savedTheme { UserDefaults.standard.set(savedTheme, forKey: "backgroundTheme") }
             else { UserDefaults.standard.removeObject(forKey: "backgroundTheme") }
             if let savedTransparency {
@@ -52,6 +55,22 @@ tests = r'''
         themePicker!.selectItem(at: 0)
         changeTheme(themePicker!)
         precondition(background?.picture != nil, "Bundled wallpaper must load")
+        let motionToggle = NSButton(checkboxWithTitle: "Motion", target: nil, action: nil)
+        motionToggle.state = .on
+        toggleMotion(motionToggle)
+        precondition(background!.dynamicEnabled && background!.water != nil)
+        let water = background!.water!
+        water.advance()
+        let frameA = water.frame!.tiffRepresentation!
+        water.poke(x: 70, y: 60)
+        for _ in 0..<20 { water.advance() }
+        let frameB = water.frame!.tiffRepresentation!
+        precondition(frameA != frameB, "Ripple pixels must change")
+        motionToggle.state = .off
+        toggleMotion(motionToggle)
+        precondition(background!.water == nil && background!.animationTimer == nil)
+        motionToggle.state = .on
+        toggleMotion(motionToggle)
         toggleShowcase()
         precondition(controlsLayout!.isHidden && countdown.isRunning)
         toggleShowcase()
@@ -67,6 +86,9 @@ tests = r'''
         }
         showReminder()
         precondition(!isShowingReminder)
+        slider.doubleValue = 0
+        changeTransparency(slider)
+        background!.water?.advance()
         window.alphaValue = 1
         minutesField?.stringValue = "25"
         startCustom()
@@ -75,7 +97,7 @@ tests = r'''
             let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/screenshot.png")
             try! bitmap.representation(using: .png, properties: [:])!.write(to: output)
         }
-        print("PASS: wallpaper/theme/showcase/reminder; start stays visible; pause/resume; transparency 0/40/80; saved preference; reminder alpha; close/reopen; controls fit")
+        print("PASS: dynamic ripple frame changes/on-off; wallpaper/theme/showcase/reminder; start stays visible; pause/resume; transparency 0/40/80; saved preference; reminder alpha; close/reopen; controls fit")
     }
 '''
 source = source.replace("    @objc func quit()", tests + "\n    @objc func quit()")
