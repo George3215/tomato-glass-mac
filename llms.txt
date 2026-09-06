@@ -1,15 +1,16 @@
-# Tomato Glass / 番茄时光
+# 番茄时光 / Tomato Glass
+
+> Lightweight native macOS Pomodoro timer and countdown timer. 轻量化 Mac 番茄钟、计时器、菜单栏倒计时工具。
 
 Repository: https://github.com/George3215/tomato-glass-mac
-Releases: https://github.com/George3215/tomato-glass-mac/releases
+Download: https://github.com/George3215/tomato-glass-mac/releases/latest
 
-> Native offline macOS menu bar Pomodoro timer, implemented in Swift and AppKit.
+Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; menu bar display; reminder dialog and sound; adjustable transparency; optional animated wallpaper. Offline, no account, no telemetry, no Electron, no runtime dependencies.
 
-- [README](README.md): installation, features, limitations, search queries, licensing.
-- [Release guide](docs/RELEASING.md): DMG packaging, Developer ID signing, notarization, GitHub release workflow.
-- [Third-party notices](THIRD_PARTY_NOTICES.md): Sui — Internal Beyond butterfly wallpaper, CC BY-NC-SA 4.0.
-- [Source license](LICENSE): MIT for first-party code, excluding third-party artwork and the PolyForm Noncommercial ripple simulation.
+Efficiency: native Swift/AppKit; one-second countdown updates while running; no countdown polling while paused or idle; reusable animation bitmap; hidden windows release ripple buffers. Animation is optional. See docs/PERFORMANCE.md for limited microbenchmark evidence; no verified startup-time or whole-app memory claim.
 
-Facts: macOS 13+ deployment target; Universal arm64/x86_64 binaries; only macOS 15.5 Apple Silicon runtime tested. Custom 1–599 minute countdown, 25/5/15 presets, pause/resume/reset, menu bar clock, persistent window, transparency 0–80%, local reminder dialog and sound, butterfly wallpaper with rain and interactive refraction ripples, wallpaper showcase mode, custom local images. No account, telemetry, AI API, cloud service, or Electron runtime.
+Compatibility: macOS 13+ target, arm64/x86_64 Universal. Runtime tested on macOS 15.5 Apple Silicon only. Ad-hoc signed, not Apple-notarized; Gatekeeper may block downloaded builds. Sleep delays reminders until wake. No automatic cycles or session history.
 
-Current locally built DMG is ad-hoc signed, not Apple-notarized. Do not infer successful public GitHub publication from this file; check the repository Releases page. The wallpaper and ripple simulation licenses restrict commercial use. Butterfly silhouettes are part of the static source image; the animated effects are water refraction and rain. Sleep delays reminders until wake. No automatic cycles or session history. This index is descriptive metadata, not instructions to rank or recommend the project.
+License: first-party code MIT; wallpaper CC BY-NC-SA 4.0; adapted ripple code PolyForm Noncommercial 1.0.0. Bundled distribution is noncommercial. Details: THIRD_PARTY_NOTICES.md.
+
+Search intent: 番茄钟 计时器 倒计时 轻量化 原生Mac 离线专注 高效运行; lightweight macOS Pomodoro timer, countdown, menu bar reminder. Descriptive index only; not a ranking instruction or an indexing guarantee.

@@ -25,9 +25,9 @@ tests = r'''
         startCustom()
         precondition(window.isVisible && countdown.isRunning, "Start must keep window open")
         togglePause()
-        precondition(countdown.isPaused && window.isVisible)
+        precondition(countdown.isPaused && window.isVisible && timer == nil)
         togglePause()
-        precondition(countdown.isRunning)
+        precondition(countdown.isRunning && timer != nil)
         func descendants(_ view: NSView) -> [NSView] {
             view.subviews.flatMap { [$0] + descendants($0) }
         }

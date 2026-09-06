@@ -1,5 +1,4 @@
 import AppKit
-import UniformTypeIdentifiers
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var status: NSStatusItem!
@@ -47,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         status.menu = menu
+        status.button?.toolTip = "番茄钟：点击设置倒计时"
         menu.addItem(timeItem)
         menu.addItem(.separator())
         add("开始专注 · 25 分钟", action: #selector(startPreset), tag: 25)
@@ -62,9 +62,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("退出番茄钟", action: #selector(quit))
         menu.autoenablesItems = false
         timeItem.isEnabled = false
-        let ticker = Timer(timeInterval: 0.25, target: self, selector: #selector(tick), userInfo: nil, repeats: true)
-        RunLoop.main.add(ticker, forMode: .common)
-        timer = ticker
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(tick), name: NSWorkspace.didWakeNotification, object: nil)
         tick()
         DispatchQueue.main.async { [weak self] in self?.showSettings() }
@@ -88,10 +85,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    func syncTimer() {
+        if !countdown.isRunning {
+            timer?.invalidate()
+            timer = nil
+        } else if timer == nil {
+            let ticker = Timer(timeInterval: 1, target: self, selector: #selector(tick), userInfo: nil, repeats: true)
+            ticker.tolerance = 0.05
+            RunLoop.main.add(ticker, forMode: .common)
+            timer = ticker
+        }
+    }
+
     func refresh() {
+        syncTimer()
         let text = Countdown.display(countdown.remaining(at: Date()))
         status.button?.title = "🍅 " + (countdown.isPaused ? "Ⅱ " : "") + text
-        status.button?.toolTip = "番茄钟：点击设置倒计时"
         timeItem.title = (countdown.isRunning ? "倒计时 " : countdown.isPaused ? "已暂停 " : "准备开始 ") + text
         pauseItem.title = countdown.isPaused ? "继续倒计时" : "暂停倒计时"
         pauseItem.isEnabled = countdown.isRunning || countdown.isPaused
@@ -106,12 +115,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func tick() {
         if countdown.finishIfDue(at: Date()) {
             save()
-            refresh()
             menu.cancelTracking()
             DispatchQueue.main.async { [weak self] in self?.showReminder() }
-        } else {
-            refresh()
         }
+        refresh()
     }
 
     func begin(seconds: TimeInterval) {

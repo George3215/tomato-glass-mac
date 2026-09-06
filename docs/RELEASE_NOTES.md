@@ -1,17 +1,13 @@
-## 番茄时光 · Tomato Glass 1.5.1
+## 番茄时光 · Tomato Glass 1.5.2
 
-原生 macOS 菜单栏番茄钟，支持倒计时弹窗、可调透明度、冰蓝蝴蝶动态雨滴与交互涟漪。
+轻量原生 macOS 番茄钟与倒计时器：菜单栏显示、暂停继续、到时弹窗、可选动态壁纸。
 
-### 安装
+- 计时从每秒 4 次改为每秒 1 次更新，暂停或空闲时停止轮询。
+- 精简 README 和检索摘要，突出番茄钟、计时器、离线及轻量化。
+- 构建与 DMG 使用单一 VERSION 配置；保留已有功能和必要许可。
 
-下载 `Tomato-Glass-1.5.1-universal.dmg`，打开并将番茄钟拖入 Applications。
+下载 DMG，将番茄钟拖入 Applications。macOS 13+，Universal arm64/x86_64；实测 macOS 15.5 Apple Silicon，Intel 和 macOS 13 尚未实机验证。
 
-- macOS 13+；Universal 包含 arm64 与 x86_64。
-- 本机已验证 macOS 15.5 / Apple Silicon；Intel 和 macOS 13 尚未实机验证。
-- **此构建为 ad-hoc 签名，未通过 Apple 公证。互联网下载后可能被 Gatekeeper 阻止首次启动。** 不保证免提示启动，请勿关闭系统安全保护；也可从源码构建。
-- 1.5.1 复用动态位图、减少重复绘制，隐藏窗口时释放水波缓冲。
-- 附带 SHA256SUMS.txt 可验证下载完整性。
+**当前构建使用 ad-hoc 签名、未经 Apple 公证，互联网下载后可能被 Gatekeeper 拦截。** 可从源码构建，请勿关闭系统安全保护。附带 SHA256SUMS.txt。
 
-### 许可
-
-蝴蝶图片：Sui — Internal Beyond，CC BY-NC-SA 4.0。水波算法移植：PolyForm Noncommercial 1.0.0。包含上述资源的安装包仅限非商业用途。详见仓库 THIRD_PARTY_NOTICES.md；本项目不是 Internal Beyond 官方发布。
+蝴蝶壁纸：Sui — Internal Beyond，CC BY-NC-SA 4.0；水波算法移植：PolyForm Noncommercial 1.0.0。安装包仅限非商业用途，详见 THIRD_PARTY_NOTICES.md。
