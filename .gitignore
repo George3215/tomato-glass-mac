@@ -1,0 +1,9 @@
+.build/
+dist/
+*.app/
+*.dmg
+*.zip
+.DS_Store
+.env
+*.p12
+*.mobileprovision

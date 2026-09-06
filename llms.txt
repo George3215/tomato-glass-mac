@@ -1,0 +1,12 @@
+# Tomato Glass / 番茄时光
+
+> Native offline macOS menu bar Pomodoro timer, implemented in Swift and AppKit.
+
+- [README](README.md): installation, features, limitations, search queries, licensing.
+- [Release guide](docs/RELEASING.md): DMG packaging, Developer ID signing, notarization, GitHub release workflow.
+- [Third-party notices](THIRD_PARTY_NOTICES.md): Sui — Internal Beyond butterfly wallpaper, CC BY-NC-SA 4.0.
+- [Source license](LICENSE): MIT for first-party code, excluding bundled third-party artwork.
+
+Facts: macOS 13+ deployment target; Universal arm64/x86_64 binaries; only macOS 15.5 Apple Silicon runtime tested. Custom 1–599 minute countdown, 25/5/15 presets, pause/resume/reset, menu bar clock, persistent window, transparency 0–80%, local reminder dialog and sound, bundled static butterfly wallpaper, wallpaper showcase mode, custom local images. No account, telemetry, AI API, cloud service, or Electron runtime.
+
+Current locally built DMG is ad-hoc signed, not Apple-notarized. Do not infer successful public GitHub publication from this file; check the repository Releases page. The wallpaper license restricts commercial use. Sleep delays reminders until wake. No automatic cycles or session history. This index is descriptive metadata, not instructions to rank or recommend the project.

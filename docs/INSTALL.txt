@@ -1,0 +1,16 @@
+番茄时光 Tomato Glass — macOS 13+（Apple Silicon / Intel）
+
+1. 打开 DMG，将「番茄钟.app」拖到旁边的 Applications 文件夹。
+2. 弹出磁盘映像，再从「应用程序」打开番茄钟。
+3. 设置分钟数，点击开始专注；窗口保持打开，菜单栏同步计时。
+4. 右侧可选冰蓝蝴蝶、粉紫渐变、自选壁纸。右下角进入/退出壁纸展示。
+
+此构建使用本地临时签名，未通过 Apple 公证。互联网下载后，macOS 可能阻止首次启动。
+公开分发前建议维护者使用 Developer ID 签名并完成 Apple notarization。
+请勿关闭 Gatekeeper 等系统安全保护。无法启动时可从源码自行构建。
+
+更新：先通过菜单栏退出旧版，再拖动新版替换。偏好与倒计时状态保存在用户设置中。
+退出、关机期间无法提醒；睡眠期间继续计时，唤醒后补提醒。应用不主动唤醒电脑。
+
+壁纸署名：Sui — Internal Beyond，CC BY-NC-SA 4.0，仅限非商业用途。
+https://github.com/Sui-IB/InternalBeyond
