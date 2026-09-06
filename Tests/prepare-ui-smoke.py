@@ -4,6 +4,13 @@ source = Path("Sources/AppDelegate.swift").read_text()
 source = source.replace("if let identifier = Bundle.main.bundleIdentifier,", "if false, let identifier = Bundle.main.bundleIdentifier,")
 tests = r''' 
     func runUISmoke() {
+        precondition(makeReminderSound() == nil, "Sound defaults to off")
+        soundPicker!.selectItem(at: 1)
+        changeSound(soundPicker!)
+        precondition(selectedSound == "Ping" && makeReminderSound() != nil)
+        soundPicker!.selectItem(at: 0)
+        changeSound(soundPicker!)
+        precondition(selectedSound.isEmpty && makeReminderSound() == nil)
         let original = countdown
         let savedMotion = UserDefaults.standard.object(forKey: "wallpaperMotion")
         let savedTheme = UserDefaults.standard.object(forKey: "backgroundTheme")

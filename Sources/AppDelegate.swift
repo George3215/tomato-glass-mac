@@ -22,6 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var errorLabel: NSTextField?
     var background: DreamBackground?
     var controlsLayout: NSView?
+    var soundPicker: NSPopUpButton?
+    var reminderSound: NSSound?
     var themePicker: NSPopUpButton?
     var showcaseButton: NSButton?
     var phaseLabel: NSTextField?
@@ -248,7 +250,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func showReminder() {
         guard !isShowingReminder else { return }
         isShowingReminder = true
-        NSSound(named: "Glass")?.play()
+        playReminderSound()
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.messageText = "时间到了 🍅"
@@ -263,6 +265,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         applyTransparency()
         alert.window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         let response = alert.runModal()
+        reminderSound?.stop()
+        reminderSound = nil
         reminderWindow = nil
         isShowingReminder = false
         if response == .alertSecondButtonReturn { let item = NSMenuItem(); item.tag = 5; startPreset(item) }

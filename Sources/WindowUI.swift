@@ -5,7 +5,7 @@ extension AppDelegate {
     @objc func showSettings() {
         NSApp.setActivationPolicy(.regular)
         if settings == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 650), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 700), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
             window.title = "🍅 菜单栏番茄钟"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
@@ -92,8 +92,16 @@ extension AppDelegate {
             fonts.selectItem(at: AppFont.useComic ? 0 : 1)
             fonts.target = self
             fonts.action = #selector(changeFont(_:))
+            let sounds = NSPopUpButton()
+            sounds.addItems(withTitles: ["提示音：关闭", "Ping", "Glass", "Pop", "Purr", "自选音频…"])
+            sounds.target = self
+            sounds.action = #selector(changeSound(_:))
+            sounds.widthAnchor.constraint(equalToConstant: 128).isActive = true
+            soundPicker = sounds
+            refreshSoundPicker()
+            let soundRow = glassStack([sounds, glassButton("试听", target: self, action: #selector(previewSound))], vertical: false, spacing: 6)
             let options = glassStack([glassLabel("我的空间", size: 19), glassLabel("自定义时长", size: 12, muted: true), durationRow, error,
-                opacityText, slider, picker, motion, imageButton, fonts], spacing: 13)
+                opacityText, slider, picker, motion, imageButton, fonts, soundRow], spacing: 13)
             let optionsCard = GlassCard(content: options, padding: 20)
             optionsCard.widthAnchor.constraint(equalToConstant: 234).isActive = true
             let cards = glassStack([focusCard, optionsCard], vertical: false, spacing: 18)
@@ -193,4 +201,58 @@ extension AppDelegate {
         controlsLayout.isHidden.toggle()
         showcaseButton?.title = controlsLayout.isHidden ? "返回番茄钟" : "壁纸展示"
     }
+}
+
+
+extension AppDelegate {
+    var selectedSound: String { UserDefaults.standard.string(forKey: "reminderSound") ?? "" }
+
+    func refreshSoundPicker() {
+        let names = ["", "Ping", "Glass", "Pop", "Purr", "custom"]
+        soundPicker?.selectItem(at: names.firstIndex(of: selectedSound) ?? 0)
+        soundPicker?.toolTip = selectedSound == "custom" ? "自选音频已保存；再次选择可更换" : "关闭仅静音，时间到仍弹窗"
+    }
+
+    @objc func changeSound(_ sender: NSPopUpButton) {
+        reminderSound?.stop()
+        reminderSound = nil
+        if sender.indexOfSelectedItem == 5 {
+            let panel = NSOpenPanel()
+            panel.allowedContentTypes = [.audio]
+            panel.allowsMultipleSelection = false
+            guard panel.runModal() == .OK, let url = panel.url else { refreshSoundPicker(); return }
+            do {
+                let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+                guard size > 0, size <= 20_000_000, NSSound(contentsOf: url, byReference: false) != nil else {
+                    throw ActivityImport.error("请选择可播放的音频文件（最大 20 MB）。")
+                }
+                let folder = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(Bundle.main.bundleIdentifier ?? "local.ry.menubar-pomodoro")
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                let destination = folder.appendingPathComponent("reminder-audio")
+                try Data(contentsOf: url).write(to: destination, options: .atomic)
+                UserDefaults.standard.set(destination.path, forKey: "reminderSoundPath")
+                UserDefaults.standard.set("custom", forKey: "reminderSound")
+            } catch { NSApp.presentError(error) }
+        } else {
+            UserDefaults.standard.set(["", "Ping", "Glass", "Pop", "Purr"][sender.indexOfSelectedItem], forKey: "reminderSound")
+        }
+        refreshSoundPicker()
+    }
+
+    func makeReminderSound() -> NSSound? {
+        if selectedSound == "custom" {
+            return UserDefaults.standard.string(forKey: "reminderSoundPath").flatMap { NSSound(contentsOfFile: $0, byReference: false) }
+        }
+        guard ["Ping", "Glass", "Pop", "Purr"].contains(selectedSound) else { return nil }
+        return NSSound(named: NSSound.Name(selectedSound))
+    }
+
+    func playReminderSound() {
+        reminderSound?.stop()
+        reminderSound = makeReminderSound()
+        reminderSound?.loops = false
+        reminderSound?.play()
+    }
+
+    @objc func previewSound() { playReminderSound() }
 }

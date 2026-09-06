@@ -70,3 +70,5 @@ Name a task, choose Study / Work / Break / Other, and start. Same-name tasks sha
 Statistics now use category cards and a striped table, with daily records and all-time task totals. Unrecorded time is not listed as activity. Manual entries remain available; AI-generated JSON can be previewed and confirmed before an atomic import. See [JSON v1 interface (Chinese)](docs/ACTIVITY_IMPORT.md). No AI service is called automatically.
 
 Choose Comic Sans MS or System Font in the main window. Comic Sans MS is used when installed; unsupported glyphs and unavailable fonts fall back to system fonts. No font files are bundled.
+
+Reminder sound is off by default. Choose a sound or import your own audio (up to 20 MB), preview it, or mute it without disabling the popup. Preferences persist across launches.
