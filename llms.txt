@@ -8,7 +8,7 @@ Download: https://github.com/George3215/tomato-glass-mac/releases/latest
 - [简体中文 README](README.md)
 - [English README](README.en.md)
 
-Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; menu bar display; reminder dialog and sound; adjustable transparency; optional animated wallpaper. Offline, no account, no telemetry, no Electron, no runtime dependencies.
+Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; menu bar display; reminder dialog; optional sound (off by default), selectable effects and custom audio with preview; adjustable transparency; optional animated wallpaper. Offline, no account, no telemetry, no Electron, no runtime dependencies.
 
 Efficiency: native Swift/AppKit; one-second countdown updates while running; no countdown polling while paused or idle; reusable animation bitmap; hidden windows release ripple buffers. Animation is optional. See docs/PERFORMANCE.md for limited microbenchmark evidence; no verified startup-time or whole-app memory claim.
 

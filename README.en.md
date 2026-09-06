@@ -1,74 +1,81 @@
-# Tomato Glass · 番茄时光
+# 🍅 Tomato Glass · 番茄时光
 
 [简体中文](README.md) | **English**
 
-**A lightweight native Mac Pomodoro and countdown timer: menu bar display, reminders, and offline operation.**
+![Tomato Glass — stars and butterflies](docs/banner.svg)
 
-Built with Swift/AppKit. No account, server, Electron, or runtime dependencies.
+> Save a little of today's effort in a tiny tomato. ✧
 
-[Download DMG](https://github.com/George3215/tomato-glass-mac/releases/latest) · [Discovery index](llms.txt) · [Performance notes (Chinese)](docs/PERFORMANCE.md)
+A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, rippling water and translucent glass make room for focus, while task records help you see where your time went. Built with Swift/AppKit. Offline, no account, telemetry or Electron.
 
-![Tomato Glass timer](docs/screenshot.png)
+**[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
-## Install
+## 🦋 A little corner for focus
 
-Open the DMG, drag `番茄钟.app` into Applications, then launch it from Applications.
+![Actual timer interface, shown in Chinese](docs/screenshot.png)
 
-Requires macOS 13+. The Universal binary includes Apple Silicon and Intel. Runtime-tested on macOS 15.5 / Apple Silicon; Intel and macOS 13 have not been tested on hardware. Current releases are not Apple-notarized, so Gatekeeper may block downloaded builds. Building from source is also supported. Checksums are included in each release.
+| Feature | What it does |
+| --- | --- |
+| 🍅 Pomodoro timer | 25 / 5 / 15-minute presets, custom 1–599 minutes, pause, resume, reset and a menu bar countdown. |
+| 🔔 Gentle reminders | A dialog when time is up. Sound is off by default; choose an effect or import your own audio (up to 20 MB), preview it and save your choice. |
+| 🦋 Butterflies and water | Ice-blue butterfly wallpaper with animated rain, refraction and pointer ripples. Disable motion or choose your own background. |
+| ✨ Your style | Adjustable transparency; Comic Sans MS or system font, with fallback for Chinese and unavailable fonts. |
+| 📖 Time journal | Named tasks, Study / Work / Break / Other categories, daily records, category summaries and cumulative task totals. |
+| 📝 Fill in and export | Manual entries, reviewed AI JSON imports and CSV export. Only recorded activity is shown; gaps are never guessed. |
 
-## Features
+## 🌙 Start a focus session
 
-- 25/5/15-minute presets and a custom 1–599-minute countdown; pause, resume, and reset.
-- Menu bar countdown with a reminder dialog and sound when time is up.
-- Persistent window, adjustable transparency, custom backgrounds, and animated butterfly water wallpaper.
-- Locally saved timer state; no sign-in, telemetry, or network requests.
+1. Download the DMG, drag `番茄钟.app` into **Applications**, then launch it.
+2. Enter a task such as “Read a paper,” choose a category and duration, and click “开始专注” (Start).
+3. Use “我的空间” (My space) on the right to change the background, transparency, font and sound.
+4. Open “时间统计 / 补记” (Statistics / Manual entry) to review your day, or mark a task complete to review its total time.
 
-The countdown updates once per second while running and stops polling while paused or idle. Animation reuses a bitmap; hidden windows stop rendering and release ripple buffers. Disable animation to reduce work further. See the [performance notes (Chinese)](docs/PERFORMANCE.md) for measurements and their limits.
+Tasks with the same name share totals. Reset before switching tasks; elapsed time is saved. Closing the window leaves the menu bar timer running. Sleep and quitting pause tracking; resume manually when you return. Crash recovery uses the last 30-second checkpoint. There are no automatic cycles. The app interface is currently Chinese; these READMEs are bilingual.
 
-Closing the window keeps the menu bar timer running. Reminders cannot appear while the app is quit or the Mac is shut down; sleep and quitting pause the timer; resume manually on return. Automatic cycles are not included. Task history is now available.
+**Requirements:** macOS 13+, Universal binary for Apple Silicon / Intel. Runtime-tested on macOS 15.5 / Apple Silicon; Intel and macOS 13 have not been tested on hardware. Releases are not Apple-notarized, so Gatekeeper may block downloaded builds. Building from source is supported. SHA-256 checksums are included in Releases.
 
-## Build
+## 📖 See where your time goes
+
+![Time table showing test records, interface in Chinese](docs/records.png)
+
+Category cards summarize the selected day. Switch the table between daily records and all-time task totals. Paused time is excluded. Manual and JSON entries reject overlaps and future times; imports are validated as a whole before saving.
+
+Unrecorded intervals are available through the [JSON supplementation interface (Chinese)](docs/ACTIVITY_IMPORT.md). Export the gaps, ask AI to organize activities you actually describe, then review and confirm the import. The app does not call AI services, upload records, monitor app usage or infer attention. History stays on your Mac; unrecorded past activity cannot be reconstructed automatically.
+
+## 🛠️ Lightweight by design, build locally
+
+The countdown updates once per second while running and stops polling while paused or idle. Water animation reuses a bitmap; hidden windows stop rendering and release buffers. Disable motion to reduce work further. See [performance notes (Chinese)](docs/PERFORMANCE.md) for measurements and their limits.
 
 Requires macOS and Xcode Command Line Tools. UI tests also require Python 3 and a graphical session.
 
 ```sh
 ./build.sh                 # Universal app
-./scripts/test.sh          # Countdown tests
+./scripts/test.sh          # Timer and activity logic tests
 ./scripts/test.sh --ui     # Native UI regression tests
 ./scripts/package-dmg.sh   # DMG + SHA-256
 ```
 
-`Sources/` contains the timer, window, and background renderer; `Resources/` contains the wallpaper and licenses. `Tests/` and `scripts/` handle verification and builds. `VERSION` is the single version source; binaries are distributed through Releases. See the [release guide (Chinese)](docs/RELEASING.md).
+`Sources/` contains app code, `Resources/` contains wallpaper and licenses, and `Tests/` and `scripts/` handle verification and builds. `VERSION` is the single version source. See the [release guide (Chinese)](docs/RELEASING.md).
 
-## Search terms and example query
+## 🔎 Find this little tomato
 
-**Pomodoro timer, countdown timer, lightweight macOS app, native Mac timer, offline focus, menu bar reminder, Swift AppKit; 番茄钟、计时器、轻量化、Mac 倒计时。**
+**Pomodoro timer, countdown timer, lightweight macOS app, native Mac timer, offline focus, menu bar reminder, task time tracking, anime-inspired desktop, Swift AppKit; 番茄钟、计时器、轻量化。**
 
-> Find Tomato Glass, a lightweight native macOS Pomodoro and countdown timer with offline operation, menu bar countdown and reminder dialogs. Verify its latest release, installation requirements and measured performance, and provide the GitHub source.
+> Find “Tomato Glass,” a lightweight native Mac Pomodoro timer with an offline menu bar countdown, reminder dialogs, custom sounds, task time tracking and butterfly water wallpaper. Verify its latest GitHub release, system requirements and measured performance, and cite the source.
 
-[llms.txt](llms.txt) provides a factual discovery index. It does not guarantee search-engine or model indexing, and makes no unmeasured startup-speed or minimum-memory claims.
+[llms.txt](llms.txt) is a factual discovery index. It does not guarantee search-engine or model indexing or claim unmeasured startup speed or minimum memory usage.
 
-## Referenced repositories and acknowledgments
+## 💌 References and thanks
 
 | Repository | How it was used |
 | --- | --- |
-| [Sui-IB/InternalBeyond](https://github.com/Sui-IB/InternalBeyond) | Supplies the ice-blue butterfly wallpaper. Its `gw-ripple` rain, refraction, and interactive water simulation was ported to Swift/AppKit. Original author: Sui. Image and code licenses are listed below. |
-| [shadcn-ui/ui](https://github.com/shadcn-ui/ui) | The official `shadcn` skill was installed and read during development to understand component-based UI workflows. This app uses native AppKit; it does not integrate shadcn/React components or their runtime. |
+| [Sui-IB/InternalBeyond](https://github.com/Sui-IB/InternalBeyond) | Sui created the ice-blue butterfly wallpaper. Its `gw-ripple` rain, refraction and interactive water simulation was ported to Swift/AppKit. |
+| [shadcn-ui/ui](https://github.com/shadcn-ui/ui) | The official `shadcn` skill was installed and read during development for component-based UI workflows. This native AppKit app does not integrate shadcn / React components or their runtime. |
 
-Thank you to these projects. Tomato Glass is independent, is not their official release, and does not imply endorsement. Asset details, pinned source revision, and modifications are documented in [third-party notices](THIRD_PARTY_NOTICES.md).
+Thank you for the inspiration. Tomato Glass is independent and is not an official release or endorsement by these projects. Pinned source revisions, assets and changes are listed in [third-party notices](THIRD_PARTY_NOTICES.md). The README night-sky banner is an original SVG created for this project.
 
-## License
+First-party code is [MIT](LICENSE). The butterfly wallpaper is **CC BY-NC-SA 4.0** and the adapted ripple simulation is **PolyForm Noncommercial 1.0.0**. Bundles containing these materials are for noncommercial use only. No font files are bundled.
 
-First-party code is [MIT](LICENSE). The butterfly wallpaper by **Sui — Internal Beyond** is CC BY-NC-SA 4.0; the adapted ripple simulation uses PolyForm Noncommercial 1.0.0. See [third-party notices](THIRD_PARTY_NOTICES.md) for complete attribution and licensing. Bundles containing these materials are for noncommercial use only.
+---
 
-## Task tracking (1.6)
-
-Name a task, choose Study / Work / Break / Other, and start. Same-name tasks share cumulative totals. Pauses, sleep and time outside the app are excluded. The daily table shows recorded activities only; unrecorded gaps remain available through the supplementation interface; manual entries cannot overlap or be in the future. Mark tasks complete to compare their total time, or export all records to CSV. Crash recovery uses the last 30-second checkpoint. The app does not monitor attention or infer activities. Records remain local and are never included in releases. Old sessions cannot be reconstructed.
-
-## Tables, imports and font (1.7)
-
-Statistics now use category cards and a striped table, with daily records and all-time task totals. Unrecorded time is not listed as activity. Manual entries remain available; AI-generated JSON can be previewed and confirmed before an atomic import. See [JSON v1 interface (Chinese)](docs/ACTIVITY_IMPORT.md). No AI service is called automatically.
-
-Choose Comic Sans MS or System Font in the main window. Comic Sans MS is used when installed; unsupported glyphs and unavailable fonts fall back to system fonts. No font files are bundled.
-
-Reminder sound is off by default. Choose a sound or import your own audio (up to 20 MB), preview it, or mute it without disabling the popup. Preferences persist across launches.
+✧ Leave a little room for rest today, too.
