@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var activityTitle: String = "未命名任务"
     var activityCategory: String = "学习"
     var statisticsWindow: NSWindow?
-    var statisticsText: NSTextView?
+    var statisticsBoard: StatisticsBoard?
     var statisticsDate: NSDatePicker?
     let activityKey = "activityLog.v1"
     var timer: Timer?
@@ -257,6 +257,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         alert.addButton(withTitle: "好的")
         alert.addButton(withTitle: "休息 5 分钟")
         alert.addButton(withTitle: "再专注 25 分钟")
+        AppFont.apply(to: alert.window.contentView)
         alert.window.level = .floating
         reminderWindow = alert.window
         applyTransparency()

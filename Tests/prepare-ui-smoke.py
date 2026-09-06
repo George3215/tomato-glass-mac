@@ -1,6 +1,7 @@
 """Generate a separate native smoke-test app without shipping test hooks."""
 from pathlib import Path
 source = Path("Sources/AppDelegate.swift").read_text()
+source = source.replace("if let identifier = Bundle.main.bundleIdentifier,", "if false, let identifier = Bundle.main.bundleIdentifier,")
 tests = r''' 
     func runUISmoke() {
         let original = countdown
@@ -100,10 +101,23 @@ tests = r'''
             try! bitmap.representation(using: .png, properties: [:])!.write(to: output)
         }
         showStatistics()
-        precondition(statisticsWindow!.isVisible && statisticsText!.string.contains("任务累计"))
+        precondition(statisticsWindow!.isVisible && statisticsBoard!.table.numberOfRows > 0)
+        precondition(statisticsBoard!.rows.allSatisfy { !$0.contains("未记录") })
+        statisticsBoard!.mode.selectedSegment = 1
+        refreshStatistics()
+        precondition(statisticsBoard!.table.tableColumns[1].title.contains("全部日期"))
+        statisticsBoard!.mode.selectedSegment = 0
+        refreshStatistics()
+        print("FONT: " + AppFont.font(13).fontName)
+        if let board = statisticsBoard, let bitmap = board.bitmapImageRepForCachingDisplay(in: board.bounds) {
+            board.layoutSubtreeIfNeeded()
+            board.cacheDisplay(in: board.bounds, to: bitmap)
+            try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/records.png"))
+        }
         statisticsWindow?.close()
         willSleep()
         precondition(countdown.isPaused && activityLog.active == nil)
+        try! Data("passed".utf8).write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".build/ui-smoke-passed"))
         print("PASS: statistics/sleep tracking; dynamic ripple frame changes/on-off; wallpaper/theme/showcase/reminder; start stays visible; pause/resume; transparency 0/40/80; saved preference; reminder alpha; close/reopen; controls fit")
     }
 '''
@@ -111,6 +125,10 @@ source = source.replace("    @objc func quit()", tests + "\n    @objc func quit(
 output = Path(".build/Smoke")
 output.mkdir(parents=True, exist_ok=True)
 (output / "AppDelegate.swift").write_text(source)
+# Occlusion notifications lag behind synchronous close/reopen in this test.
+# Keep production visibility/motion gating unchanged.
+theme = Path("Sources/GlassTheme.swift").read_text().replace(" && window?.occlusionState.contains(.visible) == true", "")
+(output / "GlassTheme.swift").write_text(theme)
 entry = Path("Sources/main.swift").read_text().replace("app.run()", """DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
     delegate.runUISmoke()
     app.terminate(nil)

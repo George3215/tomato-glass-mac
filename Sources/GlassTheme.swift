@@ -130,7 +130,7 @@ final class GlassCard: NSView {
 
 func glassLabel(_ title: String, size: CGFloat = 13, muted: Bool = false) -> NSTextField {
     let label = NSTextField(labelWithString: title)
-    label.font = .systemFont(ofSize: size, weight: size >= 20 ? .semibold : .regular)
+    label.font = AppFont.font(size, weight: size >= 20 ? .semibold : .regular)
     label.textColor = NSColor.white.withAlphaComponent(muted ? 0.68 : 0.96)
     return label
 }

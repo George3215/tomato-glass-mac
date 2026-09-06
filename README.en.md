@@ -63,4 +63,10 @@ First-party code is [MIT](LICENSE). The butterfly wallpaper by **Sui — Interna
 
 ## Task tracking (1.6)
 
-Name a task, choose Study / Work / Break / Other, and start. Same-name tasks share cumulative totals. Pauses, sleep and time outside the app are excluded. A daily timeline shows recorded activities and unrecorded gaps; manual entries cannot overlap or be in the future. Mark tasks complete to compare their total time, or export all records to CSV. Crash recovery uses the last 30-second checkpoint. The app does not monitor attention or infer activities. Records remain local and are never included in releases. Old sessions cannot be reconstructed.
+Name a task, choose Study / Work / Break / Other, and start. Same-name tasks share cumulative totals. Pauses, sleep and time outside the app are excluded. The daily table shows recorded activities only; unrecorded gaps remain available through the supplementation interface; manual entries cannot overlap or be in the future. Mark tasks complete to compare their total time, or export all records to CSV. Crash recovery uses the last 30-second checkpoint. The app does not monitor attention or infer activities. Records remain local and are never included in releases. Old sessions cannot be reconstructed.
+
+## Tables, imports and font (1.7)
+
+Statistics now use category cards and a striped table, with daily records and all-time task totals. Unrecorded time is not listed as activity. Manual entries remain available; AI-generated JSON can be previewed and confirmed before an atomic import. See [JSON v1 interface (Chinese)](docs/ACTIVITY_IMPORT.md). No AI service is called automatically.
+
+Choose Comic Sans MS or System Font in the main window. Comic Sans MS is used when installed; unsupported glyphs and unavailable fonts fall back to system fonts. No font files are bundled.

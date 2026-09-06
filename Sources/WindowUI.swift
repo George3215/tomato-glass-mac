@@ -87,8 +87,13 @@ extension AppDelegate {
             themePicker = picker
             let motion = NSButton(checkboxWithTitle: "动态雨滴与涟漪", target: self, action: #selector(toggleMotion(_:)))
             motion.state = motionEnabled ? .on : .off
+            let fonts = NSPopUpButton()
+            fonts.addItems(withTitles: ["Comic Sans MS", "系统字体"])
+            fonts.selectItem(at: AppFont.useComic ? 0 : 1)
+            fonts.target = self
+            fonts.action = #selector(changeFont(_:))
             let options = glassStack([glassLabel("我的空间", size: 19), glassLabel("自定义时长", size: 12, muted: true), durationRow, error,
-                opacityText, slider, picker, motion, imageButton], spacing: 13)
+                opacityText, slider, picker, motion, imageButton, fonts], spacing: 13)
             let optionsCard = GlassCard(content: options, padding: 20)
             optionsCard.widthAnchor.constraint(equalToConstant: 234).isActive = true
             let cards = glassStack([focusCard, optionsCard], vertical: false, spacing: 18)
@@ -121,12 +126,22 @@ extension AppDelegate {
         showcaseButton?.title = "壁纸展示"
         minutesField?.stringValue = String(Int(countdown.duration / 60))
         applyTransparency()
+        AppFont.apply(to: settings?.contentView)
+        menu.font = AppFont.font(13)
         refresh()
         NSApp.activate(ignoringOtherApps: true)
         settings?.makeKeyAndOrderFront(nil)
         settings?.orderFrontRegardless()
         settings?.makeFirstResponder(minutesField)
         background?.syncAnimation()
+    }
+
+    @objc func changeFont(_ sender: NSPopUpButton) {
+        UserDefaults.standard.set(sender.indexOfSelectedItem == 0, forKey: "comicFont")
+        AppFont.apply(to: settings?.contentView)
+        AppFont.apply(to: statisticsWindow?.contentView)
+        menu.font = AppFont.font(13)
+        refreshStatistics()
     }
 
     @objc func chooseBackground() {

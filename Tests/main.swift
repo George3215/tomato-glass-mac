@@ -38,3 +38,13 @@ assert(log.addManual(Activity(task: "Other", category: "其他", start: now.addi
 let roundTrip = try JSONDecoder().decode(ActivityLog.self, from: JSONEncoder().encode(log))
 assert(roundTrip.entries.count == 3)
 print("PASS: activity segments, pause exclusion, crash recovery, interval clipping, overlap rejection, persistence")
+
+let valid = ActivityImport(version: 1, source: "ai", entries: [.init(task: "AI example", category: "工作", start: now.addingTimeInterval(150), end: now.addingTimeInterval(180))])
+let imported = try valid.applying(to: log, now: now.addingTimeInterval(200))
+assert(imported.entries.count == log.entries.count + 1 && imported.entries.last!.reason == "AI补记")
+let duplicate = ActivityImport(version: 1, source: "ai", entries: valid.entries + valid.entries)
+do { _ = try duplicate.applying(to: log, now: now.addingTimeInterval(200)); assertionFailure("Overlap accepted") } catch {}
+assert(log.entries.count == 3)
+let gaps = log.gaps(in: DateInterval(start: now, end: now.addingTimeInterval(200)), now: now.addingTimeInterval(200))
+assert(gaps.count == 1 && gaps[0].duration == 50)
+print("PASS: AI import validation, atomic rejection and unrecorded interval API")

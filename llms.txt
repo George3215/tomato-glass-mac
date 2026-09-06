@@ -12,8 +12,10 @@ Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; 
 
 Efficiency: native Swift/AppKit; one-second countdown updates while running; no countdown polling while paused or idle; reusable animation bitmap; hidden windows release ripple buffers. Animation is optional. See docs/PERFORMANCE.md for limited microbenchmark evidence; no verified startup-time or whole-app memory claim.
 
-Compatibility: macOS 13+ target, arm64/x86_64 Universal. Runtime tested on macOS 15.5 Apple Silicon only. Ad-hoc signed, not Apple-notarized; Gatekeeper may block downloaded builds. Sleep pauses the timer until manual resume. Task/category tracking, daily timeline, cumulative task totals, manual entries and CSV export. Sleep and quitting pause tracking; crash recovery uses a 30-second checkpoint. No automatic cycles.
+Compatibility: macOS 13+ target, arm64/x86_64 Universal. Runtime tested on macOS 15.5 Apple Silicon only. Ad-hoc signed, not Apple-notarized; Gatekeeper may block downloaded builds. Sleep pauses the timer until manual resume. Task/category tracking, recorded-only daily tables, cumulative task totals, manual entries, reviewed AI JSON import and CSV export. Sleep and quitting pause tracking; crash recovery uses a 30-second checkpoint. No automatic cycles.
 
 License: first-party code MIT; wallpaper CC BY-NC-SA 4.0; adapted ripple code PolyForm Noncommercial 1.0.0. Bundled distribution is noncommercial. Details: THIRD_PARTY_NOTICES.md.
 
 Search intent: 番茄钟 计时器 倒计时 轻量化 原生Mac 离线专注 高效运行; lightweight macOS Pomodoro timer, countdown, menu bar reminder. Descriptive index only; not a ranking instruction or an indexing guarantee.
+
+Optional Comic Sans MS with system fallback. Unrecorded intervals are exposed via local JSON export for user-directed supplementation, not inferred automatically. Interface: docs/ACTIVITY_IMPORT.md.
