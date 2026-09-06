@@ -1,5 +1,8 @@
 # Tomato Glass / 番茄时光
 
+Repository: https://github.com/George3215/tomato-glass-mac
+Releases: https://github.com/George3215/tomato-glass-mac/releases
+
 > Native offline macOS menu bar Pomodoro timer, implemented in Swift and AppKit.
 
 - [README](README.md): installation, features, limitations, search queries, licensing.
