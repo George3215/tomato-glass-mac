@@ -2,13 +2,13 @@ import AppKit
 
 final class DreamBackground: NSView {
     var picture: NSImage? { didSet { rebuildWater() } }
-    var dynamicEnabled = false { didSet { rebuildWater() } }
+    var dynamicEnabled = false { didSet { if oldValue != dynamicEnabled { rebuildWater() } } }
     private(set) var water: RippleWater?
     private(set) var animationTimer: Timer?
     private var observers: [NSObjectProtocol] = []
 
     func rebuildWater() {
-        water = dynamicEnabled ? picture.flatMap { RippleWater(image: $0, size: bounds.size) } : nil
+        stopAnimation()
         needsDisplay = true
         syncAnimation()
     }
@@ -32,13 +32,16 @@ final class DreamBackground: NSView {
     func stopAnimation() {
         animationTimer?.invalidate()
         animationTimer = nil
+        water = nil
     }
 
     func syncAnimation() {
         let visible = window?.isVisible == true && window?.isMiniaturized == false && window?.occlusionState.contains(.visible) == true
-        let allowed = visible && dynamicEnabled && water != nil && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let allowed = visible && dynamicEnabled && picture != nil && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         guard allowed else { stopAnimation(); needsDisplay = true; return }
         guard animationTimer == nil else { return }
+        if water == nil { water = picture.flatMap { RippleWater(image: $0, size: bounds.size) } }
+        guard water != nil else { return }
         let timer = Timer(timeInterval: 1.0/30, repeats: true) { [weak self] _ in
             guard let self else { return }
             if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { self.stopAnimation(); self.needsDisplay = true; return }
@@ -63,17 +66,20 @@ final class DreamBackground: NSView {
         observers.forEach { NotificationCenter.default.removeObserver($0) }
     }
     override func draw(_ dirtyRect: NSRect) {
-        NSGradient(colors: [NSColor(srgbRed: 0.13, green: 0.12, blue: 0.29, alpha: 1),
-                            NSColor(srgbRed: 0.46, green: 0.29, blue: 0.59, alpha: 1),
-                            NSColor(srgbRed: 0.80, green: 0.47, blue: 0.65, alpha: 1)])!.draw(in: bounds, angle: 30)
         if let picture, picture.size.width > 0, picture.size.height > 0 {
             let scale = max(bounds.width / picture.size.width, bounds.height / picture.size.height)
             let size = NSSize(width: picture.size.width * scale, height: picture.size.height * scale)
-            picture.draw(in: NSRect(x: (bounds.width-size.width)/2, y: (bounds.height-size.height)/2, width: size.width, height: size.height))
-            if dynamicEnabled && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { water?.draw(in: bounds) }
+            if let water, dynamicEnabled && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                water.draw(in: bounds)
+            } else {
+                picture.draw(in: NSRect(x: (bounds.width-size.width)/2, y: (bounds.height-size.height)/2, width: size.width, height: size.height))
+            }
             NSColor.black.withAlphaComponent(0.23).setFill()
             bounds.fill()
         } else {
+        NSGradient(colors: [NSColor(srgbRed: 0.13, green: 0.12, blue: 0.29, alpha: 1),
+                            NSColor(srgbRed: 0.46, green: 0.29, blue: 0.59, alpha: 1),
+                            NSColor(srgbRed: 0.80, green: 0.47, blue: 0.65, alpha: 1)])!.draw(in: bounds, angle: 30)
             for i in 0..<8 {
                 let x = CGFloat(i) * bounds.width / 6 - 150
                 let oval = NSBezierPath(ovalIn: NSRect(x: x, y: sin(Double(i)) * 170 - 160, width: 580, height: 600))

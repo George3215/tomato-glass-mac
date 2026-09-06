@@ -19,7 +19,7 @@ final class RippleWater {
     private var ambientTime: Double = 2
     private struct Drop { var x: Double; var y: Double; let target: Double; let speed: Double; let strength: Float }
     private var drops: [Drop] = []
-    var frame: NSImage?
+    private(set) var frame: NSImage?
 
     init?(image: NSImage, size: NSSize) {
         guard size.width > 0, size.height > 0, image.size.width > 0, image.size.height > 0 else { return nil }
@@ -34,6 +34,10 @@ final class RippleWater {
             colorSpaceName: .deviceRGB, bytesPerRow: renderWidth * 4, bitsPerPixel: 32),
             let context = NSGraphicsContext(bitmapImageRep: bitmap) else { return nil }
         output = bitmap
+        let reusableFrame = NSImage(size: NSSize(width: renderWidth, height: renderHeight))
+        reusableFrame.cacheMode = .never
+        reusableFrame.addRepresentation(bitmap)
+        frame = reusableFrame
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
         let scale = max(CGFloat(renderWidth)/image.size.width, CGFloat(renderHeight)/image.size.height)
@@ -107,12 +111,12 @@ final class RippleWater {
                 dst[destination+3] = 255
             }
         }
-        if let cg = output.cgImage { frame = NSImage(cgImage: cg, size: NSSize(width: renderWidth, height: renderHeight)) }
+
     }
 
     func draw(in bounds: NSRect) {
         NSGraphicsContext.current?.imageInterpolation = .high
-        frame?.draw(in: bounds)
+        output.draw(in: bounds)
         NSColor.white.withAlphaComponent(0.6).setStroke()
         for drop in drops {
             let x = drop.x/Double(width)*bounds.width

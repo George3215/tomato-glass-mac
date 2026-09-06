@@ -8,7 +8,7 @@ Tomato Glass is a lightweight, offline, native macOS Pomodoro timer built with S
 
 ## 下载与安装 / Download & install
 
-前往本仓库 **Releases**，下载 `Tomato-Glass-1.5.0-universal.dmg`。
+前往本仓库 **Releases**，下载 `Tomato-Glass-1.5.1-universal.dmg`。
 
 1. 双击 DMG。
 2. 将 `番茄钟.app` 拖到磁盘窗口中的 `Applications` 文件夹。
@@ -57,6 +57,10 @@ Release 附带 `SHA256SUMS.txt`，下载后可用 `shasum -a 256 -c SHA256SUMS.t
 ```
 
 运行 `open 番茄钟.app`。构建无 npm、WebView 或第三方软件库依赖。编译输出、应用包及 DMG 不纳入 Git 历史，通过 Releases 分发。
+
+## 1.5.1 性能整理
+
+复用动画位图、移除被覆盖的重复绘制，窗口隐藏时释放水波缓冲。计时、动态开关和提醒测试通过；有限范围的测量见 [性能记录](docs/PERFORMANCE.md)。
 
 ## 代码结构
 

@@ -45,6 +45,7 @@ tests = r'''
         precondition(abs(reminder.alphaValue - window.alphaValue) < 0.001)
         reminderWindow = nil
         window.close()
+        precondition(background?.water == nil && background?.animationTimer == nil, "Close releases renderer")
         precondition(!applicationShouldTerminateAfterLastWindowClosed(NSApp))
         _ = applicationShouldHandleReopen(NSApp, hasVisibleWindows: false)
         precondition(window.isVisible && abs(window.alphaValue - 0.2) < 0.001)
@@ -80,10 +81,11 @@ tests = r'''
         precondition(background?.picture == nil)
         themePicker!.selectItem(at: 0)
         changeTheme(themePicker!)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        let dismissTimer = Timer(timeInterval: 0.2, repeats: false) { _ in
             precondition(NSApp.modalWindow != nil, "Reminder must be visible")
             NSApp.abortModal()
         }
+        RunLoop.main.add(dismissTimer, forMode: .modalPanel)
         showReminder()
         precondition(!isShowingReminder)
         slider.doubleValue = 0
@@ -109,4 +111,4 @@ entry = Path("Sources/main.swift").read_text().replace("app.run()", """DispatchQ
     app.terminate(nil)
 }
 app.run()""")
-(output / "main.swift").write_text(entry)
+(output / "main.swift").write_text(entry.replace("let app =", 'UserDefaults.standard.removePersistentDomain(forName: "local.tomato-glass.smoke")\nlet app ='))
