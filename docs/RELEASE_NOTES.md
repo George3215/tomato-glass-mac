@@ -1,13 +1,7 @@
-## 番茄时光 · Tomato Glass 1.5.2
+## 番茄时光 · Tomato Glass 1.6.0
 
-轻量原生 macOS 番茄钟与倒计时器：菜单栏显示、暂停继续、到时弹窗、可选动态壁纸。
+新增任务名与学习/工作/休息/其他分类、按日期时间线、任务累计用时、完成标记、手动补记与 CSV 导出。
 
-- 计时从每秒 4 次改为每秒 1 次更新，暂停或空闲时停止轮询。
-- 精简 README 和检索摘要，突出番茄钟、计时器、离线及轻量化。
-- 构建与 DMG 使用单一 VERSION 配置；保留已有功能和必要许可。
+暂停、睡眠、退出不计入时长；时间到按截止时间结算，重置保留已投入时间。异常退出恢复到最近 30 秒保存点。所有记录本地保存，升级前历史无法重建，旧计时在升级后暂停。
 
-下载 DMG，将番茄钟拖入 Applications。macOS 13+，Universal arm64/x86_64；实测 macOS 15.5 Apple Silicon，Intel 和 macOS 13 尚未实机验证。
-
-**当前构建使用 ad-hoc 签名、未经 Apple 公证，互联网下载后可能被 Gatekeeper 拦截。** 可从源码构建，请勿关闭系统安全保护。附带 SHA256SUMS.txt。
-
-蝴蝶壁纸：Sui — Internal Beyond，CC BY-NC-SA 4.0；水波算法移植：PolyForm Noncommercial 1.0.0。安装包仅限非商业用途，详见 THIRD_PARTY_NOTICES.md。
+macOS 13+ Universal；实测 macOS 15.5 Apple Silicon。未通过 Apple 公证，下载后可能被 Gatekeeper 拦截。原有蝴蝶壁纸与水波许可不变，安装包仅限非商业用途；详见 THIRD_PARTY_NOTICES.md。

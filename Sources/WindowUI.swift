@@ -5,7 +5,7 @@ extension AppDelegate {
     @objc func showSettings() {
         NSApp.setActivationPolicy(.regular)
         if settings == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 570), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 650), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
             window.title = "🍅 菜单栏番茄钟"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
@@ -26,6 +26,8 @@ extension AppDelegate {
             currentTime.font = .monospacedDigitSystemFont(ofSize: 76, weight: .light)
             countdownLabel = currentTime
             let phase = glassLabel("准备好了，就开始吧", muted: true)
+            phase.lineBreakMode = .byTruncatingTail
+            phase.widthAnchor.constraint(lessThanOrEqualToConstant: 430).isActive = true
             phaseLabel = phase
             let presets = glassStack([], vertical: false, spacing: 8)
             for (name, value) in [("专注 25′",25), ("小憩 5′",5), ("休息 15′",15)] {
@@ -43,7 +45,20 @@ extension AppDelegate {
             windowPauseButton = pause
             windowResetButton = reset
             let controls = glassStack([start, pause, reset], vertical: false, spacing: 8)
-            let focus = glassStack([caption, currentTime, phase, presets, controls], spacing: 20)
+            let task = NSComboBox()
+            task.addItems(withObjectValues: Array(Set(activityLog.entries.map { $0.task })).sorted())
+            task.stringValue = activityTitle
+            task.placeholderString = "项目 / 学习任务名称"
+            task.widthAnchor.constraint(equalToConstant: 430).isActive = true
+            taskField = task
+            let categories = NSPopUpButton()
+            categories.addItems(withTitles: ["学习", "工作", "休息", "其他"])
+            categories.selectItem(withTitle: activityCategory)
+            categoryPicker = categories
+            let stats = glassButton("时间统计 / 补记", target: self, action: #selector(showStatistics))
+            let done = glassButton("任务完成", target: self, action: #selector(completeTask))
+            let taskControls = glassStack([categories, stats, done], vertical: false, spacing: 8)
+            let focus = glassStack([caption, task, taskControls, currentTime, phase, presets, controls], spacing: 16)
             focus.alignment = .centerX
             let focusCard = GlassCard(content: focus)
 

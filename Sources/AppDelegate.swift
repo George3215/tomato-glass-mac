@@ -7,6 +7,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let pauseItem = NSMenuItem(title: "暂停", action: #selector(togglePause), keyEquivalent: "")
     let resetItem = NSMenuItem(title: "重置", action: #selector(reset), keyEquivalent: "")
     var countdown = Countdown()
+    var activityLog = ActivityLog()
+    var taskField: NSComboBox?
+    var categoryPicker: NSPopUpButton?
+    var activityTitle: String = "未命名任务"
+    var activityCategory: String = "学习"
+    var statisticsWindow: NSWindow?
+    var statisticsText: NSTextView?
+    var statisticsDate: NSDatePicker?
+    let activityKey = "activityLog.v1"
     var timer: Timer?
     var settings: NSWindow?
     var minutesField: NSTextField?
@@ -43,6 +52,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
            saved.duration.isFinite, saved.duration >= 1, saved.duration <= 599 * 60 {
             countdown = saved
         }
+        if let data = UserDefaults.standard.data(forKey: activityKey),
+           let saved = try? JSONDecoder().decode(ActivityLog.self, from: data) { activityLog = saved }
+        if let active = activityLog.active {
+            activityTitle = active.task
+            activityCategory = active.category
+            if countdown.isRunning { countdown.pause(at: active.checkpoint) }
+            activityLog.recover()
+            saveActivity()
+        } else {
+            activityTitle = UserDefaults.standard.string(forKey: "selectedTask") ?? "未命名任务"
+            activityCategory = UserDefaults.standard.string(forKey: "selectedCategory") ?? "学习"
+            if countdown.isRunning { countdown.pause(at: Date()) }
+        }
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
         status.menu = menu
@@ -53,6 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("短休息 · 5 分钟", action: #selector(startPreset), tag: 5)
         add("长休息 · 15 分钟", action: #selector(startPreset), tag: 15)
         add("自定义倒计时…", action: #selector(showSettings))
+        add("时间统计与补记…", action: #selector(showStatistics))
         menu.addItem(.separator())
         pauseItem.target = self
         resetItem.target = self
@@ -63,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.autoenablesItems = false
         timeItem.isEnabled = false
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(tick), name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(willSleep), name: NSWorkspace.willSleepNotification, object: nil)
         tick()
         DispatchQueue.main.async { [weak self] in self?.showSettings() }
     }
@@ -106,23 +130,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         pauseItem.isEnabled = countdown.isRunning || countdown.isPaused
         resetItem.isEnabled = countdown.isRunning || countdown.isPaused
         countdownLabel?.stringValue = text
-        phaseLabel?.stringValue = countdown.isRunning ? "正在专注 · 每一刻都算数" : countdown.isPaused ? "已暂停 · 按自己的节奏来" : "准备好了，就开始吧"
+        phaseLabel?.stringValue = (countdown.isRunning ? "计时中" : countdown.isPaused ? "已暂停" : "准备开始") + " · " + activityTitle
+        taskField?.isEnabled = !countdown.isRunning && !countdown.isPaused
+        categoryPicker?.isEnabled = !countdown.isRunning && !countdown.isPaused
         windowPauseButton?.title = pauseItem.title
         windowPauseButton?.isEnabled = pauseItem.isEnabled
         windowResetButton?.isEnabled = resetItem.isEnabled
     }
 
     @objc func tick() {
-        if countdown.finishIfDue(at: Date()) {
+        let now = Date()
+        let deadline = countdown.deadline
+        if countdown.finishIfDue(at: now) {
+            activityLog.finish(at: deadline ?? now, reason: "到时")
+            saveActivity()
             save()
             menu.cancelTracking()
             DispatchQueue.main.async { [weak self] in self?.showReminder() }
+        }
+        if let active = activityLog.active, now.timeIntervalSince(active.checkpoint) >= 30 {
+            activityLog.checkpoint(at: now)
+            saveActivity()
         }
         refresh()
     }
 
     func begin(seconds: TimeInterval) {
-        countdown.start(seconds: seconds, at: Date())
+        let now = Date()
+        if let deadline = countdown.deadline { activityLog.finish(at: min(now, deadline), reason: "切换") }
+        activityTitle = taskField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? activityTitle
+        if activityTitle.isEmpty { activityTitle = "未命名任务" }
+        activityCategory = categoryPicker?.titleOfSelectedItem ?? activityCategory
+        if activityCategory != "休息" {
+            UserDefaults.standard.set(activityTitle, forKey: "lastFocusTask")
+            UserDefaults.standard.set(activityCategory, forKey: "lastFocusCategory")
+        }
+        activityLog.begin(task: activityTitle, category: activityCategory, at: now)
+        UserDefaults.standard.set(activityTitle, forKey: "selectedTask")
+        UserDefaults.standard.set(activityCategory, forKey: "selectedCategory")
+        saveActivity()
+        countdown.start(seconds: seconds, at: now)
         save()
         refresh()
     }
@@ -130,6 +177,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func startPreset(_ sender: AnyObject) {
         let minutes = (sender as? NSMenuItem)?.tag ?? (sender as? NSButton)?.tag ?? 25
         minutesField?.stringValue = String(minutes)
+        if minutes == 5 || minutes == 15 {
+            taskField?.stringValue = "休息"
+            categoryPicker?.selectItem(withTitle: "休息")
+            activityTitle = "休息"
+            activityCategory = "休息"
+        }
+        if minutes == 25 && activityCategory == "休息" {
+            activityTitle = UserDefaults.standard.string(forKey: "lastFocusTask") ?? "未命名任务"
+            activityCategory = UserDefaults.standard.string(forKey: "lastFocusCategory") ?? "学习"
+            taskField?.stringValue = activityTitle
+            categoryPicker?.selectItem(withTitle: activityCategory)
+        }
         begin(seconds: Double(minutes) * 60)
     }
 
@@ -137,15 +196,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if countdown.isRunning {
             // Never turn an already expired timer into a paused timer.
             if countdown.remaining(at: Date()) <= 0 { tick(); return }
+            activityLog.finish(at: Date(), reason: "暂停")
             countdown.pause(at: Date())
-        } else {
+        } else if countdown.isPaused {
+            activityLog.begin(task: activityTitle, category: activityCategory, at: Date())
             countdown.resume(at: Date())
         }
+        saveActivity()
         save()
         refresh()
     }
 
     @objc func reset() {
+        activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "提前结束")
+        saveActivity()
         countdown.reset()
         save()
         refresh()
@@ -200,11 +264,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let response = alert.runModal()
         reminderWindow = nil
         isShowingReminder = false
-        if response == .alertSecondButtonReturn { begin(seconds: 5 * 60) }
-        if response == .alertThirdButtonReturn { begin(seconds: 25 * 60) }
+        if response == .alertSecondButtonReturn { let item = NSMenuItem(); item.tag = 5; startPreset(item) }
+        if response == .alertThirdButtonReturn { let item = NSMenuItem(); item.tag = 25; startPreset(item) }
     }
 
     @objc func quit() { NSApp.terminate(nil) }
 
-    func applicationWillTerminate(_ notification: Notification) { save() }
+    func saveActivity() {
+        if let data = try? JSONEncoder().encode(activityLog) { UserDefaults.standard.set(data, forKey: activityKey) }
+    }
+
+    @objc func willSleep() {
+        if countdown.isRunning {
+            activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "睡眠")
+            countdown.pause(at: Date())
+            saveActivity()
+            save()
+            refresh()
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if countdown.isRunning {
+            activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "退出")
+            countdown.pause(at: Date())
+        }
+        saveActivity()
+        save()
+    }
 }

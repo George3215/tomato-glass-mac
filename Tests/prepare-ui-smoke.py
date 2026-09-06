@@ -99,7 +99,12 @@ tests = r'''
             let output = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/screenshot.png")
             try! bitmap.representation(using: .png, properties: [:])!.write(to: output)
         }
-        print("PASS: dynamic ripple frame changes/on-off; wallpaper/theme/showcase/reminder; start stays visible; pause/resume; transparency 0/40/80; saved preference; reminder alpha; close/reopen; controls fit")
+        showStatistics()
+        precondition(statisticsWindow!.isVisible && statisticsText!.string.contains("任务累计"))
+        statisticsWindow?.close()
+        willSleep()
+        precondition(countdown.isPaused && activityLog.active == nil)
+        print("PASS: statistics/sleep tracking; dynamic ripple frame changes/on-off; wallpaper/theme/showcase/reminder; start stays visible; pause/resume; transparency 0/40/80; saved preference; reminder alpha; close/reopen; controls fit")
     }
 '''
 source = source.replace("    @objc func quit()", tests + "\n    @objc func quit()")

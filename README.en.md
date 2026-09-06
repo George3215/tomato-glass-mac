@@ -25,7 +25,7 @@ Requires macOS 13+. The Universal binary includes Apple Silicon and Intel. Runti
 
 The countdown updates once per second while running and stops polling while paused or idle. Animation reuses a bitmap; hidden windows stop rendering and release ripple buffers. Disable animation to reduce work further. See the [performance notes (Chinese)](docs/PERFORMANCE.md) for measurements and their limits.
 
-Closing the window keeps the menu bar timer running. Reminders cannot appear while the app is quit or the Mac is shut down; after sleep, overdue reminders appear on wake. Automatic cycles and session history are not included.
+Closing the window keeps the menu bar timer running. Reminders cannot appear while the app is quit or the Mac is shut down; sleep and quitting pause the timer; resume manually on return. Automatic cycles are not included. Task history is now available.
 
 ## Build
 
@@ -60,3 +60,7 @@ Thank you to these projects. Tomato Glass is independent, is not their official 
 ## License
 
 First-party code is [MIT](LICENSE). The butterfly wallpaper by **Sui — Internal Beyond** is CC BY-NC-SA 4.0; the adapted ripple simulation uses PolyForm Noncommercial 1.0.0. See [third-party notices](THIRD_PARTY_NOTICES.md) for complete attribution and licensing. Bundles containing these materials are for noncommercial use only.
+
+## Task tracking (1.6)
+
+Name a task, choose Study / Work / Break / Other, and start. Same-name tasks share cumulative totals. Pauses, sleep and time outside the app are excluded. A daily timeline shows recorded activities and unrecorded gaps; manual entries cannot overlap or be in the future. Mark tasks complete to compare their total time, or export all records to CSV. Crash recovery uses the last 30-second checkpoint. The app does not monitor attention or infer activities. Records remain local and are never included in releases. Old sessions cannot be reconstructed.
