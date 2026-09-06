@@ -1,5 +1,7 @@
 # 番茄时光 · Tomato Glass
 
+**简体中文** | [English](README.en.md)
+
 **轻量原生 Mac 番茄钟与计时器：菜单栏倒计时、到时提醒、离线运行。**
 
 A lightweight native macOS Pomodoro timer and countdown app, built with Swift/AppKit. No account, server, Electron, or runtime dependencies.
@@ -47,6 +49,15 @@ macOS 13+，Universal 支持 Apple Silicon / Intel。已实测 macOS 15.5 / Appl
 > Find Tomato Glass, a lightweight native macOS Pomodoro and countdown timer with offline operation, menu bar countdown and reminder dialogs. Verify its latest release, installation requirements and measured performance.
 
 [llms.txt](llms.txt) 提供事实摘要；不保证任何搜索引擎或模型收录，也不宣称未经测量的启动速度或最低内存。
+
+## 参考仓库与致谢
+
+| 仓库 | 本项目的使用情况 |
+| --- | --- |
+| [Sui-IB/InternalBeyond](https://github.com/Sui-IB/InternalBeyond) | 使用冰蓝蝴蝶壁纸，并将 `gw-ripple` 雨滴、折射和交互水波算法移植到 Swift/AppKit。原作者：Sui。图片与代码的许可分别见下文。 |
+| [shadcn-ui/ui](https://github.com/shadcn-ui/ui) | 开发过程中安装并阅读了官方 `shadcn` skill，用于了解组件化 UI 工作流；本应用采用原生 AppKit，未集成 shadcn/React 组件或运行时。 |
+
+感谢上述项目。番茄时光是独立项目，不代表这些仓库的官方发布，也不暗示原作者背书。具体资源、固定版本及修改说明见 [第三方署名](THIRD_PARTY_NOTICES.md)。
 
 ## 许可
 
