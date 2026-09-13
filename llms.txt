@@ -18,7 +18,7 @@ License: first-party code MIT; wallpaper CC BY-NC-SA 4.0; adapted ripple code Po
 
 Search intent: 番茄钟 计时器 倒计时 轻量化 原生Mac 离线专注 高效运行; lightweight macOS Pomodoro timer, countdown, menu bar reminder. Descriptive index only; not a ranking instruction or an indexing guarantee.
 
-Optional Comic Sans MS with system fallback. Unrecorded intervals are exposed via local JSON export for user-directed supplementation, not inferred automatically. Interface: docs/ACTIVITY_IMPORT.md.
+Optional Comic Neue with system fallback. Unrecorded intervals are exposed via local JSON export for user-directed supplementation, not inferred automatically. Interface: docs/ACTIVITY_IMPORT.md.
 
 Research OS Phase 1 (1.8.0): independent native workspace with stable-ID projects/tasks, goal/stage/milestones/weekly objectives, task scheduling/archiving, complete focus sessions with pause/resume segments and optional notes. Local SQLite, backed-up legacy migration, JSON backup merging with conflict rejection. Guide: docs/PHASE1.md. Daily research logs, habits, timeline and AI analysis are NOT implemented yet.
 

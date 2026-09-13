@@ -105,6 +105,7 @@ final class StatisticsBoard: GroupedSurface, NSTableViewDataSource, NSTableViewD
             total.font = AppFont.font(17, weight: .medium)
             let stack = glassStack([name, total], spacing: 8)
             let card = GlassCard(content: stack, padding: 14)
+            card.layer?.backgroundColor = ExhibitPalette.node(category == "学习" ? "问题" : category == "工作" ? "实验" : "观点").cgColor
             summary.addArrangedSubview(card)
         }
         let titles: [String]

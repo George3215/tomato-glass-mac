@@ -147,7 +147,7 @@ enum SoftGlass {
     static let accent = NSColor(srgbRed: 0, green: 0.478, blue: 1, alpha: 1)
     static let separator = NSColor(srgbRed: 0.23, green: 0.23, blue: 0.26, alpha: 0.12)
     static func drawBackground(in rect: NSRect) {
-        NSColor(srgbRed: 0.949, green: 0.949, blue: 0.969, alpha: 1).setFill()
+        NSColor(srgbRed: 0.973, green: 0.969, blue: 0.953, alpha: 1).setFill()
         rect.fill()
     }
     static func frost(_ view: NSView) {
@@ -198,4 +198,41 @@ extension NSAlert {
         }
         return runModal()
     }
+}
+
+
+/// Restrained color blocks: labels carry meaning even without color perception.
+enum ExhibitPalette {
+    static let ink = NSColor(srgbRed: 0.19, green: 0.22, blue: 0.20, alpha: 1)
+    static let blocks: [NSColor] = [
+        NSColor(srgbRed: 0.88, green: 0.85, blue: 0.96, alpha: 1),
+        NSColor(srgbRed: 0.98, green: 0.85, blue: 0.73, alpha: 1),
+        NSColor(srgbRed: 0.81, green: 0.89, blue: 0.82, alpha: 1),
+        NSColor(srgbRed: 0.97, green: 0.92, blue: 0.70, alpha: 1)]
+    static func node(_ kind: String) -> NSColor {
+        switch kind {
+        case "问题", "假设": return blocks[0]
+        case "观点", "Idea", "讨论": return blocks[1]
+        case "实验", "结果": return blocks[2]
+        default: return blocks[3]
+        }
+    }
+    static func project(_ id: UUID?) -> NSColor {
+        guard let id else { return blocks[3] }
+        let index = id.uuidString.utf8.reduce(0) { ($0 + Int($1)) % blocks.count }
+        return blocks[index]
+    }
+}
+
+final class ExhibitHeading: NSView {
+    init(_ title: String, subtitle: String, color: NSColor) {
+        super.init(frame: .zero)
+        wantsLayer = true; layer?.backgroundColor = color.cgColor; layer?.cornerRadius = 18
+        let name = NSTextField(labelWithString: title); name.font = AppFont.font(26, weight: .bold); name.textColor = ExhibitPalette.ink
+        let caption = NSTextField(labelWithString: subtitle); caption.font = AppFont.font(13); caption.textColor = ExhibitPalette.ink
+        let stack = glassStack([name, caption], spacing: 4)
+        stack.translatesAutoresizingMaskIntoConstraints = false; addSubview(stack)
+        NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20), stack.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -20), stack.topAnchor.constraint(equalTo: topAnchor, constant: 14), stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14)])
+    }
+    required init?(coder: NSCoder) { fatalError() }
 }

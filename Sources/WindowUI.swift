@@ -23,6 +23,7 @@ extension AppDelegate {
 
             let caption = glassLabel("F O C U S   /   专 注", size: 12, muted: true)
             let currentTime = glassLabel("25:00", size: 76)
+            currentTime.identifier = .init("tabular-timer")
             currentTime.font = .monospacedDigitSystemFont(ofSize: 76, weight: .light)
             countdownLabel = currentTime
             let phase = glassLabel("准备好了，就开始吧", muted: true)
@@ -103,7 +104,7 @@ extension AppDelegate {
             let motion = NSButton(checkboxWithTitle: "动态雨滴与涟漪", target: self, action: #selector(toggleMotion(_:)))
             motion.state = motionEnabled ? .on : .off
             let fonts = NSPopUpButton()
-            fonts.addItems(withTitles: ["Comic Sans MS", "系统字体"])
+            fonts.addItems(withTitles: ["Comic Neue + 霞鹜文楷", "系统字体"])
             fonts.selectItem(at: AppFont.useComic ? 0 : 1)
             fonts.target = self
             fonts.action = #selector(changeFont(_:))

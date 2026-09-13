@@ -35,12 +35,14 @@ final class ResearchBoardController: NSWindowController {
         let filters = glassStack([search, kind, status, project, importantOnly], vertical: false, spacing: 10)
         hint.font = AppFont.font(12); hint.textColor = .secondaryLabelColor
         hint.maximumNumberOfLines = 2
-        let layout = glassStack([toolbar, filters, canvas, hint], spacing: 12)
+        let heading = ExhibitHeading("Research Studio · 研究展板", subtitle: "问题 → 观点 → 实验 → 结果   /   双击创建 · 拖动整理 · 连线推进", color: ExhibitPalette.blocks[0])
+        let layout = glassStack([heading, toolbar, filters, canvas, hint], spacing: 12)
         let root = BoardSurface(); window.contentView = root; root.addSubview(layout)
         layout.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             layout.topAnchor.constraint(equalTo: root.topAnchor, constant: 16), layout.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
             layout.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16), layout.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -16),
+            heading.widthAnchor.constraint(equalTo: layout.widthAnchor),
             canvas.widthAnchor.constraint(equalTo: layout.widthAnchor), canvas.heightAnchor.constraint(greaterThanOrEqualToConstant: 420),
             hint.widthAnchor.constraint(equalTo: layout.widthAnchor), hint.heightAnchor.constraint(equalToConstant: 38)
         ])
@@ -205,17 +207,17 @@ final class ResearchCanvas: NSView {
             arrow.line(to: NSPoint(x: b.x - 12*cos(angle+0.45), y: b.y - 12*sin(angle+0.45))); arrow.close(); ink.setFill(); arrow.fill()
             let r = NSRect(x: (a.x+b.x)/2 - 28, y: (a.y+b.y)/2 - 10, width: 64, height: 21)
             SoftGlass.panel.setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill()
-            label(e.relation, in: r.insetBy(dx: 5, dy: 2), size: 11, color: ink)
+            label(e.relation, in: r.insetBy(dx: 5, dy: 2), size: 11, color: ExhibitPalette.ink)
         }
         for n in graph.nodes where visibleIDs.contains(n.id) {
             let r = rect(n), ink = color(n.kind)
-            SoftGlass.panel.setFill(); let path = NSBezierPath(roundedRect: r, xRadius: 14, yRadius: 14); path.fill()
+            ExhibitPalette.node(n.kind).setFill(); let path = NSBezierPath(roundedRect: r, xRadius: 14, yRadius: 14); path.fill()
             (n.id == selectedNode || n.id == linkSource ? ink : ink.withAlphaComponent(0.25)).setStroke()
             path.lineWidth = n.id == selectedNode || n.id == linkSource ? 3 : 1; path.stroke()
-            label(n.kind + (n.important ? "  ★ 重点" : ""), in: NSRect(x: r.minX+14, y: r.minY+12, width: 210, height: 18), size: 12, color: ink, bold: true)
+            label(n.kind + (n.important ? "  ★ 重点" : ""), in: NSRect(x: r.minX+14, y: r.minY+12, width: 210, height: 18), size: 12, color: ExhibitPalette.ink, bold: true)
             label(n.title, in: NSRect(x: r.minX+14, y: r.minY+38, width: 212, height: 36), size: 15, color: .labelColor, bold: true)
-            label(n.body.replacingOccurrences(of: "\n", with: " "), in: NSRect(x: r.minX+14, y: r.minY+80, width: 212, height: 20), size: 12, color: .secondaryLabelColor)
-            label(n.status, in: NSRect(x: r.minX+14, y: r.minY+110, width: 212, height: 18), size: 11, color: ink)
+            label(n.body.replacingOccurrences(of: "\n", with: " "), in: NSRect(x: r.minX+14, y: r.minY+80, width: 212, height: 20), size: 12, color: ExhibitPalette.ink)
+            label(n.status, in: NSRect(x: r.minX+14, y: r.minY+110, width: 212, height: 18), size: 11, color: ExhibitPalette.ink)
         }
         NSGraphicsContext.restoreGraphicsState()
         if graph.nodes.isEmpty { label("双击空白，创建第一个研究节点\n问题 → 观点 → 实验 → 结果", in: NSRect(x: 40, y: 80, width: 430, height: 70), size: 20, color: .secondaryLabelColor) }

@@ -1,6 +1,6 @@
 """Generate a separate native smoke-test app without shipping test hooks."""
 from pathlib import Path
-source = Path("Sources/AppDelegate.swift").read_text()
+source = Path("Sources/AppDelegate.swift").read_text().replace("import AppKit", "import AppKit\nimport CoreText")
 source = source.replace("if let identifier = Bundle.main.bundleIdentifier,", "if false, let identifier = Bundle.main.bundleIdentifier,")
 tests = r''' 
     func runUISmoke() {
@@ -162,6 +162,11 @@ tests = r'''
         precondition(statisticsBoard!.table.tableColumns[1].title.contains("全部日期"))
         statisticsBoard!.mode.selectedSegment = 0
         refreshStatistics()
+        precondition(AppFont.font(13).fontName == "ComicNeue-Regular", "Bundled Comic Neue must load")
+        precondition(AppFont.font(18, weight: .bold).fontName == "ComicNeue-Bold", "Bundled bold must load")
+        precondition(NSFont(name: "LXGWWenKaiLite-Regular", size: 13) != nil, "Bundled Chinese font must load")
+        let chineseFont = CTFontCreateForString(AppFont.font(13) as CTFont, "研究日程" as CFString, CFRange(location: 0, length: 4))
+        precondition((CTFontCopyPostScriptName(chineseFont) as String).contains("LXGWWenKai"), "Chinese must use WenKai cascade")
         print("FONT: " + AppFont.font(13).fontName)
         if let board = statisticsBoard, let bitmap = board.bitmapImageRepForCachingDisplay(in: board.bounds) {
             board.layoutSubtreeIfNeeded()

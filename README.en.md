@@ -10,9 +10,9 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
-## iPhone-inspired interface · 1.10.2
+## Color-block research boards · 1.10.3
 
-A light grouped background, rounded cards and subtle frosted panels unify the planner, research board, workspace and editors. No gradient or dotted backgrounds; blue is reserved for actions and selection.
+Cream, peach, sage and lavender organize research nodes by type and daily Todos by project. Completed items retain their labels on neutral backgrounds. Bundled open-source Comic Neue includes regular and bold weights. Light rounded panels and frosted navigation remain, without dots or large gradients.
 
 ## 🗓️ Research Planner · 1.10
 
@@ -52,7 +52,7 @@ An independent workspace now connects **Projects → Tasks → Focus Sessions �
 | 🍅 Pomodoro timer | 25 / 5 / 15-minute presets, custom 1–599 minutes, pause, resume, reset and a menu bar countdown. |
 | 🔔 Gentle reminders | A dialog when time is up. Sound is off by default; choose an effect or import your own audio (up to 20 MB), preview it and save your choice. |
 | 🦋 Butterflies and water | Ice-blue butterfly wallpaper with animated rain, refraction and pointer ripples. Disable motion or choose your own background. |
-| ✨ Your style | Adjustable transparency; Comic Sans MS or system font, with fallback for Chinese and unavailable fonts. |
+| ✨ Your style | Adjustable transparency; Comic Neue or system font, with LXGW WenKai Lite for Chinese and fallback for missing glyphs. |
 | 📖 Time journal | Named tasks, Study / Work / Break / Other categories, daily records, category summaries and cumulative task totals. |
 | 📝 Fill in and export | Manual entries, reviewed AI JSON imports and CSV export. Only recorded activity is shown; gaps are never guessed. |
 
@@ -107,7 +107,7 @@ Requires macOS and Xcode Command Line Tools. UI tests also require Python 3 and 
 
 Thank you for the inspiration. Tomato Glass is independent and is not an official release or endorsement by these projects. Pinned source revisions, assets and changes are listed in [third-party notices](THIRD_PARTY_NOTICES.md). The README night-sky banner is an original SVG created for this project.
 
-First-party code is [MIT](LICENSE). The butterfly wallpaper is **CC BY-NC-SA 4.0** and the adapted ripple simulation is **PolyForm Noncommercial 1.0.0**. Bundles containing these materials are for noncommercial use only. No font files are bundled.
+First-party code is [MIT](LICENSE). The butterfly wallpaper is **CC BY-NC-SA 4.0** and the adapted ripple simulation is **PolyForm Noncommercial 1.0.0**. Bundles containing these materials are for noncommercial use only. Comic Neue is bundled under SIL OFL 1.1; Chinese uses bundled LXGW WenKai Lite.
 
 ---
 

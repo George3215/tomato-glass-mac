@@ -25,3 +25,16 @@ Required Notice: Copyright © 2025–2026 Sui. Internal Beyond (https://github.c
 `Sources/RippleWater.swift` adapts the `gw-ripple` JavaScript block in InternalBeyond.html from the same upstream revision identified above. It ports damped wave propagation, refraction shading, rain impacts and pointer disturbances to Swift/AppKit. Changes include native drawing and coordinates, a fixed 30 Hz update, and app-controlled rendering lifecycle. It does not port the whole website or the fog-painting module.
 
 License: **PolyForm Noncommercial License 1.0.0**, full terms in `Resources/Licenses/InternalBeyond-CODE.md`. The MIT license does not apply to this adapted file. This contribution to the adapted simulation is distributed under the same noncommercial terms. The source screenshot is an adapted wallpaper composition under CC BY-NC-SA 4.0.
+
+## Comic Neue
+
+Copyright 2014 The Comic Neue Project Authors (https://github.com/crozynski/comicneue).
+Regular and Bold font files are distributed unmodified under **SIL Open Font License 1.1**. Full license: `Resources/Fonts/OFL.txt`. Distribution source: https://github.com/google/fonts/tree/main/ofl/comicneue. Registered only within the app process, not installed system-wide. Chinese glyphs use bundled LXGW WenKai Lite.
+
+## Design learning reference
+
+https://github.com/qianguyihao/Web is a frontend learning resource (CC BY-NC-SA 4.0). It was consulted as a reference; no code, tutorial text or assets were copied. The color-block boards are implemented independently in AppKit.
+
+## LXGW WenKai Lite / 霞鹜文楷轻便版
+
+Unmodified Regular font from https://github.com/lxgw/LxgwWenKai-Lite, font blob `8751570c043ae7bb9a0aa10773b031ca4ada9843`. Licensed under SIL OFL 1.1, including upstream Fontworks Klee attribution. Full copyright and terms: `Resources/Fonts/LXGWWenKai-OFL.txt`. Registered within the app process as the Chinese cascade for Comic Neue.
