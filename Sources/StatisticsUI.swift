@@ -24,14 +24,12 @@ extension AppDelegate {
         statisticsWindow?.makeKeyAndOrderFront(nil)
     }
 
-    @objc func refreshStatistics() { statisticsBoard?.reload(log: activityLog, now: Date()) }
+    @objc func refreshStatistics() { statisticsBoard?.reload(log: activityLog, now: Date(), tasks: research.state.tasks) }
 
     @objc func completeTask() {
-        let task = activityTitle
-        reset()
-        activityLog.completed[task] = Date()
-        saveActivity()
-        showStatistics()
+        guard let id = research.current?.taskID ?? selectedTaskID else { showWorkspace(); return }
+        _ = researchAction { try research.completeTask(id, at: Date()) }
+        refresh(); refreshResearchPickers(); showStatistics()
     }
 
     @objc func addManualActivity() {
@@ -54,7 +52,7 @@ extension AppDelegate {
         alert.addButton(withTitle: "取消")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         let entry = Activity(task: task.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), category: category.titleOfSelectedItem!, start: start.dateValue, end: end.dateValue, reason: "手动补记")
-        if activityLog.addManual(entry, now: Date()) { saveActivity(); refreshStatistics() }
+        if researchAction({ try research.importActivities([entry], now: Date()) }) { refreshStatistics() }
         else {
             let warning = NSAlert()
             warning.messageText = "未保存"
@@ -105,8 +103,9 @@ extension AppDelegate {
             alert.addButton(withTitle: "确认导入")
             alert.addButton(withTitle: "取消")
             guard alert.runModal() == .alertFirstButtonReturn else { return }
-            activityLog = try batch.applying(to: activityLog, now: Date())
-            saveActivity()
+            let entries = batch.entries.map { Activity(task: $0.task, category: $0.category, start: $0.start, end: $0.end, reason: batch.source == "ai" ? "AI补记" : "导入补记") }
+            try research.importActivities(entries, now: Date())
+            workspace?.reload()
             refreshStatistics()
         } catch { NSApp.presentError(error) }
     }

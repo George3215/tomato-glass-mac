@@ -5,7 +5,7 @@ extension AppDelegate {
     @objc func showSettings() {
         NSApp.setActivationPolicy(.regular)
         if settings == nil {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 700), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 920, height: 790), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
             window.title = "🍅 菜单栏番茄钟"
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
@@ -58,7 +58,22 @@ extension AppDelegate {
             let stats = glassButton("时间统计 / 补记", target: self, action: #selector(showStatistics))
             let done = glassButton("任务完成", target: self, action: #selector(completeTask))
             let taskControls = glassStack([categories, stats, done], vertical: false, spacing: 8)
-            let focus = glassStack([caption, task, taskControls, currentTime, phase, presets, controls], spacing: 16)
+            let projects = NSPopUpButton()
+            projects.target = self; projects.action = #selector(changeResearchProject(_:))
+            projects.widthAnchor.constraint(equalToConstant: 220).isActive = true
+            projectPicker = projects
+            let taskPicker = NSPopUpButton()
+            taskPicker.target = self; taskPicker.action = #selector(changeResearchTask(_:))
+            taskPicker.widthAnchor.constraint(equalToConstant: 220).isActive = true
+            researchTaskPicker = taskPicker
+            let workTypes = NSPopUpButton()
+            workTypes.addItems(withTitles: ResearchState.workTypes)
+            workTypes.selectItem(withTitle: research.current?.workType ?? "学习")
+            workTypePicker = workTypes
+            let researchRow = glassStack([projects, taskPicker], vertical: false, spacing: 8)
+            let workspaceRow = glassStack([workTypes, glassButton("科研工作台", target: self, action: #selector(showWorkspace))], vertical: false, spacing: 8)
+            refreshResearchPickers()
+            let focus = glassStack([caption, researchRow, workspaceRow, task, taskControls, currentTime, phase, presets, controls], spacing: 16)
             focus.alignment = .centerX
             let focusCard = GlassCard(content: focus)
 
@@ -136,6 +151,7 @@ extension AppDelegate {
         applyTransparency()
         AppFont.apply(to: settings?.contentView)
         menu.font = AppFont.font(13)
+        refreshResearchPickers()
         refresh()
         NSApp.activate(ignoringOtherApps: true)
         settings?.makeKeyAndOrderFront(nil)
@@ -255,4 +271,38 @@ extension AppDelegate {
     }
 
     @objc func previewSound() { playReminderSound() }
+}
+
+
+extension AppDelegate {
+    func refreshResearchPickers() {
+        guard research != nil else { return }
+        projectPicker?.removeAllItems()
+        projectPicker?.addItem(withTitle: "不关联项目")
+        for p in research.state.projects where p.archivedAt == nil || p.id == selectedProjectID {
+            projectPicker?.addItem(withTitle: p.title)
+            projectPicker?.lastItem?.representedObject = p.id.uuidString
+        }
+        if let id = selectedProjectID, let item = projectPicker?.itemArray.first(where: { $0.representedObject as? String == id.uuidString }) { projectPicker?.select(item) }
+        researchTaskPicker?.removeAllItems()
+        researchTaskPicker?.addItem(withTitle: "自由记录 / 不关联任务")
+        for t in research.state.tasks where t.projectID == selectedProjectID && ((t.archivedAt == nil && t.completedAt == nil) || t.id == selectedTaskID) {
+            researchTaskPicker?.addItem(withTitle: t.title + " · " + t.id.uuidString.prefix(4))
+            researchTaskPicker?.lastItem?.representedObject = t.id.uuidString
+        }
+        if let id = selectedTaskID, let item = researchTaskPicker?.itemArray.first(where: { $0.representedObject as? String == id.uuidString }) {
+            researchTaskPicker?.select(item)
+            if research.current == nil { taskField?.stringValue = research.state.tasks.first { $0.id == id }?.title ?? "" }
+        }
+    }
+    @objc func changeResearchProject(_ sender: NSPopUpButton) {
+        selectedProjectID = (sender.selectedItem?.representedObject as? String).flatMap(UUID.init(uuidString:))
+        selectedTaskID = nil
+        refreshResearchPickers(); refresh()
+    }
+    @objc func changeResearchTask(_ sender: NSPopUpButton) {
+        selectedTaskID = (sender.selectedItem?.representedObject as? String).flatMap(UUID.init(uuidString:))
+        if let task = research.state.tasks.first(where: { $0.id == selectedTaskID }) { taskField?.stringValue = task.title }
+        refresh()
+    }
 }

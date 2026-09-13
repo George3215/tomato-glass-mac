@@ -7,7 +7,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let pauseItem = NSMenuItem(title: "暂停", action: #selector(togglePause), keyEquivalent: "")
     let resetItem = NSMenuItem(title: "重置", action: #selector(reset), keyEquivalent: "")
     var countdown = Countdown()
-    var activityLog = ActivityLog()
+    var research: FocusSessionCoordinator!
+    var workspace: ResearchWorkspaceWindowController?
+    var projectPicker: NSPopUpButton?
+    var researchTaskPicker: NSPopUpButton?
+    var workTypePicker: NSPopUpButton?
+    var selectedProjectID: UUID?
+    var selectedTaskID: UUID?
+    var lastSessionID: UUID?
+    var storageFailed = false
+    var activityLog: ActivityLog { research?.state.activityLog(at: Date()) ?? ActivityLog() }
     var taskField: NSComboBox?
     var categoryPicker: NSPopUpButton?
     var activityTitle: String = "未命名任务"
@@ -15,7 +24,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var statisticsWindow: NSWindow?
     var statisticsBoard: StatisticsBoard?
     var statisticsDate: NSDatePicker?
-    let activityKey = "activityLog.v1"
     var timer: Timer?
     var settings: NSWindow?
     var minutesField: NSTextField?
@@ -36,7 +44,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let value = UserDefaults.standard.double(forKey: "windowTransparency")
         return value.isFinite ? min(80, max(0, value)) : 0
     }
-    let storageKey = "savedCountdown.v1"
     var isShowingReminder = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -49,23 +56,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.terminate(nil)
             return
         }
-        if let data = UserDefaults.standard.data(forKey: storageKey),
-           let saved = try? JSONDecoder().decode(Countdown.self, from: data),
-           saved.duration.isFinite, saved.duration >= 1, saved.duration <= 599 * 60 {
-            countdown = saved
-        }
-        if let data = UserDefaults.standard.data(forKey: activityKey),
-           let saved = try? JSONDecoder().decode(ActivityLog.self, from: data) { activityLog = saved }
-        if let active = activityLog.active {
-            activityTitle = active.task
-            activityCategory = active.category
-            if countdown.isRunning { countdown.pause(at: active.checkpoint) }
-            activityLog.recover()
-            saveActivity()
-        } else {
-            activityTitle = UserDefaults.standard.string(forKey: "selectedTask") ?? "未命名任务"
-            activityCategory = UserDefaults.standard.string(forKey: "selectedCategory") ?? "学习"
-            if countdown.isRunning { countdown.pause(at: Date()) }
+        do {
+            let folder = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                .appendingPathComponent(Bundle.main.bundleIdentifier ?? "local.ry.menubar-pomodoro")
+            let store = try SQLiteResearchStore(url: folder.appendingPathComponent("research.sqlite"))
+            research = FocusSessionCoordinator(state: try LegacyMigration.bootstrap(store: store, defaults: .standard, now: Date()), repository: store)
+            try research.recover()
+            if let session = research.current {
+                countdown = session.countdown
+                selectedProjectID = session.projectID; selectedTaskID = session.taskID
+                activityTitle = session.title; activityCategory = session.category
+            }
+        } catch {
+            let alert = NSAlert(); alert.messageText = "科研数据未能打开"
+            alert.informativeText = error.localizedDescription + "\n原数据不会被覆盖。请保留 Application Support 中的备份。"
+            alert.runModal(); NSApp.terminate(nil); return
         }
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
@@ -77,6 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("短休息 · 5 分钟", action: #selector(startPreset), tag: 5)
         add("长休息 · 15 分钟", action: #selector(startPreset), tag: 15)
         add("自定义倒计时…", action: #selector(showSettings))
+        add("科研工作台…", action: #selector(showWorkspace))
         add("时间统计与补记…", action: #selector(showStatistics))
         menu.addItem(.separator())
         pauseItem.target = self
@@ -105,14 +111,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(item)
     }
 
-    func save() {
-        if let data = try? JSONEncoder().encode(countdown) {
-            UserDefaults.standard.set(data, forKey: storageKey)
+    @discardableResult func researchAction(_ action: () throws -> Void) -> Bool {
+        do {
+            try action()
+            countdown = research.current?.countdown ?? Countdown(duration: countdown.duration)
+            storageFailed = false
+            workspace?.reload()
+            return true
+        } catch {
+            NSApp.presentError(error)
+            return false
         }
     }
 
+    @objc func showWorkspace() {
+        if workspace == nil { workspace = ResearchWorkspaceWindowController(delegate: self) }
+        workspace?.showWindow(nil); workspace?.reload()
+        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+    }
+
     func syncTimer() {
-        if !countdown.isRunning {
+        if !countdown.isRunning || storageFailed {
             timer?.invalidate()
             timer = nil
         } else if timer == nil {
@@ -133,46 +152,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         resetItem.isEnabled = countdown.isRunning || countdown.isPaused
         countdownLabel?.stringValue = text
         phaseLabel?.stringValue = (countdown.isRunning ? "计时中" : countdown.isPaused ? "已暂停" : "准备开始") + " · " + activityTitle
-        taskField?.isEnabled = !countdown.isRunning && !countdown.isPaused
+        taskField?.isEnabled = !countdown.isRunning && !countdown.isPaused && selectedTaskID == nil
         categoryPicker?.isEnabled = !countdown.isRunning && !countdown.isPaused
+        for picker in [projectPicker, researchTaskPicker, workTypePicker] { picker?.isEnabled = research.current == nil }
         windowPauseButton?.title = pauseItem.title
         windowPauseButton?.isEnabled = pauseItem.isEnabled
         windowResetButton?.isEnabled = resetItem.isEnabled
     }
 
     @objc func tick() {
+        guard research != nil, !storageFailed else { return }
         let now = Date()
-        let deadline = countdown.deadline
-        if countdown.finishIfDue(at: now) {
-            activityLog.finish(at: deadline ?? now, reason: "到时")
-            saveActivity()
-            save()
-            menu.cancelTracking()
-            DispatchQueue.main.async { [weak self] in self?.showReminder() }
-        }
-        if let active = activityLog.active, now.timeIntervalSince(active.checkpoint) >= 30 {
-            activityLog.checkpoint(at: now)
-            saveActivity()
-        }
+        do {
+            if let id = try research.tick(at: now) {
+                lastSessionID = id
+                menu.cancelTracking()
+                DispatchQueue.main.async { [weak self] in self?.showReminder() }
+                workspace?.reload()
+            }
+            countdown = research.current?.countdown ?? Countdown(duration: countdown.duration)
+        } catch { storageFailed = true; timer?.invalidate(); timer = nil; NSApp.presentError(error) }
         refresh()
     }
 
     func begin(seconds: TimeInterval) {
-        let now = Date()
-        if let deadline = countdown.deadline { activityLog.finish(at: min(now, deadline), reason: "切换") }
-        activityTitle = taskField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? activityTitle
-        if activityTitle.isEmpty { activityTitle = "未命名任务" }
+        let title = taskField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? activityTitle
+        activityTitle = title.isEmpty ? "未命名任务" : title
         activityCategory = categoryPicker?.titleOfSelectedItem ?? activityCategory
-        if activityCategory != "休息" {
+        let isBreak = activityCategory == "休息"
+        if !isBreak {
             UserDefaults.standard.set(activityTitle, forKey: "lastFocusTask")
             UserDefaults.standard.set(activityCategory, forKey: "lastFocusCategory")
         }
-        activityLog.begin(task: activityTitle, category: activityCategory, at: now)
-        UserDefaults.standard.set(activityTitle, forKey: "selectedTask")
-        UserDefaults.standard.set(activityCategory, forKey: "selectedCategory")
-        saveActivity()
-        countdown.start(seconds: seconds, at: now)
-        save()
+        let task = research.state.tasks.first { $0.id == selectedTaskID }
+        let name = isBreak ? "休息" : (task?.title ?? activityTitle)
+        if researchAction({ try research.start(projectID: isBreak ? nil : selectedProjectID, taskID: isBreak ? nil : selectedTaskID, title: name, category: activityCategory, workType: isBreak ? "其他" : (workTypePicker?.titleOfSelectedItem ?? "学习"), seconds: seconds, at: Date()) }) {
+            activityTitle = name
+        }
         refresh()
     }
 
@@ -195,25 +211,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     @objc func togglePause() {
-        if countdown.isRunning {
-            // Never turn an already expired timer into a paused timer.
-            if countdown.remaining(at: Date()) <= 0 { tick(); return }
-            activityLog.finish(at: Date(), reason: "暂停")
-            countdown.pause(at: Date())
-        } else if countdown.isPaused {
-            activityLog.begin(task: activityTitle, category: activityCategory, at: Date())
-            countdown.resume(at: Date())
+        if countdown.isRunning && countdown.remaining(at: Date()) <= 0 { tick(); return }
+        _ = researchAction {
+            if countdown.isRunning { try research.pause(at: Date()) }
+            else { try research.resume(at: Date()) }
         }
-        saveActivity()
-        save()
         refresh()
     }
 
     @objc func reset() {
-        activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "提前结束")
-        saveActivity()
-        countdown.reset()
-        save()
+        _ = researchAction { lastSessionID = try research.finish(at: Date(), reason: "提前结束") }
         refresh()
     }
 
@@ -244,7 +251,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     func windowWillClose(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        let closing = notification.object as? NSWindow
+        if ![settings, workspace?.window, statisticsWindow].compactMap({ $0 }).contains(where: { $0 !== closing && $0.isVisible }) {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     func showReminder() {
@@ -259,12 +269,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         alert.addButton(withTitle: "好的")
         alert.addButton(withTitle: "休息 5 分钟")
         alert.addButton(withTitle: "再专注 25 分钟")
+        let note = NSTextField(string: "")
+        note.placeholderString = "可选短记：做了什么 / 发现 / 下一步（也可稍后在工作台补写）"
+        note.frame = NSRect(x: 0, y: 0, width: 440, height: 28)
+        alert.accessoryView = note
+        let finishedID = lastSessionID
         AppFont.apply(to: alert.window.contentView)
         alert.window.level = .floating
         reminderWindow = alert.window
         applyTransparency()
         alert.window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         let response = alert.runModal()
+        if !note.stringValue.isEmpty, let id = finishedID {
+            _ = researchAction { try research.change { state in
+                if let i = state.sessions.firstIndex(where: { $0.id == id }) { state.sessions[i].note.text = note.stringValue }
+            } }
+        }
         reminderSound?.stop()
         reminderSound = nil
         reminderWindow = nil
@@ -275,26 +295,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @objc func quit() { NSApp.terminate(nil) }
 
-    func saveActivity() {
-        if let data = try? JSONEncoder().encode(activityLog) { UserDefaults.standard.set(data, forKey: activityKey) }
-    }
-
     @objc func willSleep() {
-        if countdown.isRunning {
-            activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "睡眠")
-            countdown.pause(at: Date())
-            saveActivity()
-            save()
-            refresh()
-        }
+        _ = researchAction { try research.pause(at: Date(), reason: "睡眠") }
+        refresh()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        if countdown.isRunning {
-            activityLog.finish(at: min(Date(), countdown.deadline ?? Date()), reason: "退出")
-            countdown.pause(at: Date())
-        }
-        saveActivity()
-        save()
+        guard research != nil else { return }
+        do { try research.pause(at: Date(), reason: "退出") }
+        catch { NSLog("Research state could not be saved on exit; checkpoint recovery will be used.") }
     }
 }

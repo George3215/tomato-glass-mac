@@ -6,6 +6,8 @@ struct Activity: Codable {
     var start: Date
     var end: Date
     var reason: String
+    var taskID: UUID?
+    var sessionID: UUID?
     var seconds: TimeInterval { max(0, end.timeIntervalSince(start)) }
     func seconds(in interval: DateInterval) -> TimeInterval {
         max(0, min(end, interval.end).timeIntervalSince(max(start, interval.start)))

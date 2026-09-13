@@ -5,7 +5,7 @@ APP="$PWD/番茄钟.app"
 version=$(cat VERSION)
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" .build/module-cache
 for arch in arm64 x86_64; do
-    xcrun swiftc -O -target "$arch-apple-macos13.0" -module-cache-path "$PWD/.build/module-cache" Sources/*.swift -framework AppKit -o ".build/Pomodoro-$arch"
+    xcrun swiftc -O -target "$arch-apple-macos13.0" -module-cache-path "$PWD/.build/module-cache" Sources/*.swift -framework AppKit -lsqlite3 -o ".build/Pomodoro-$arch"
 done
 lipo -create .build/Pomodoro-arm64 .build/Pomodoro-x86_64 -output "$APP/Contents/MacOS/Pomodoro"
 xcrun swift -module-cache-path "$PWD/.build/module-cache" scripts/make-icon.swift "$PWD/.build/Tomato.iconset"

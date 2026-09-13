@@ -11,6 +11,51 @@ tests = r'''
         soundPicker!.selectItem(at: 0)
         changeSound(soundPicker!)
         precondition(selectedSound.isEmpty && makeReminderSound() == nil)
+        let demoProject = ResearchProject(title: "示例科研项目", goal: "验证研究流程", nextAction: "完成第一次专注")
+        let demoTask = ResearchTask(title: "示例任务", projectID: demoProject.id)
+        try! research.change { $0.projects.append(demoProject); $0.tasks.append(demoTask) }
+        selectedProjectID = demoProject.id; selectedTaskID = demoTask.id
+        refreshResearchPickers()
+        showWorkspace()
+        precondition(workspace!.window!.isVisible)
+        workspace!.navigation.selectedSegment = 2; workspace!.reload()
+        precondition(workspace!.rowIDs.contains(demoProject.id))
+        workspace!.navigation.selectedSegment = 1; workspace!.reload()
+        precondition(workspace!.rowIDs.contains(demoTask.id))
+        func acceptNewForm(_ title: String, capture: Bool = false) {
+            let timer = Timer(timeInterval: 0.25, repeats: false) { _ in
+                guard let root = NSApp.modalWindow?.contentView else { fatalError("Missing edit form") }
+                func fields(_ view: NSView) -> [NSTextField] {
+                    (view as? NSTextField).map { [$0] } ?? view.subviews.flatMap(fields)
+                }
+                let editable = fields(root).filter { $0.isEditable }
+                precondition(!editable.isEmpty, "Form fields missing")
+                editable[0].stringValue = title
+                if capture, let bitmap = root.bitmapImageRepForCachingDisplay(in: root.bounds) {
+                    root.layoutSubtreeIfNeeded(); root.cacheDisplay(in: root.bounds, to: bitmap)
+                    try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".build/research-project-editor.png"))
+                }
+                NSApp.stopModal(withCode: .alertFirstButtonReturn)
+            }
+            RunLoop.main.add(timer, forMode: .modalPanel)
+        }
+        workspace!.navigation.selectedSegment = 2; workspace!.reload()
+        acceptNewForm("表单测试项目", capture: true); workspace!.newItem()
+        precondition(research.state.projects.contains { $0.title == "表单测试项目" })
+        workspace!.navigation.selectedSegment = 1; workspace!.reload()
+        acceptNewForm("表单测试任务"); workspace!.newItem()
+        precondition(research.state.tasks.contains { $0.title == "表单测试任务" })
+        let newTaskID = research.state.tasks.first { $0.title == "表单测试任务" }!.id
+        workspace!.reload()
+        workspace!.table.selectRowIndexes(IndexSet(integer: workspace!.rowIDs.firstIndex(of: newTaskID)!), byExtendingSelection: false)
+        workspace!.archiveItem()
+        precondition(research.state.tasks.first { $0.id == newTaskID }!.archivedAt != nil)
+        workspace!.filter.selectItem(at: 5); workspace!.reload()
+        precondition(workspace!.rowIDs.contains(newTaskID))
+        workspace!.table.selectRowIndexes(IndexSet(integer: workspace!.rowIDs.firstIndex(of: newTaskID)!), byExtendingSelection: false)
+        workspace!.archiveItem()
+        precondition(research.state.tasks.first { $0.id == newTaskID }!.archivedAt == nil)
+        workspace!.window?.close()
         let original = countdown
         let savedMotion = UserDefaults.standard.object(forKey: "wallpaperMotion")
         let savedTheme = UserDefaults.standard.object(forKey: "backgroundTheme")
@@ -32,10 +77,11 @@ tests = r'''
         minutesField?.stringValue = "1"
         startCustom()
         precondition(window.isVisible && countdown.isRunning, "Start must keep window open")
+        let firstSession = research.current!.id
         togglePause()
         precondition(countdown.isPaused && window.isVisible && timer == nil)
         togglePause()
-        precondition(countdown.isRunning && timer != nil)
+        precondition(countdown.isRunning && timer != nil && research.current!.id == firstSession)
         func descendants(_ view: NSView) -> [NSView] {
             view.subviews.flatMap { [$0] + descendants($0) }
         }
@@ -122,6 +168,16 @@ tests = r'''
             try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/records.png"))
         }
         statisticsWindow?.close()
+        showWorkspace(); workspace!.navigation.selectedSegment = 4; workspace!.reload()
+        precondition(!workspace!.rowIDs.isEmpty)
+        workspace!.table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+        acceptNewForm("测试短记：已完成一次验证"); workspace!.editItem()
+        precondition(research.state.sessions.contains { $0.note.text == "测试短记：已完成一次验证" })
+        if let content = workspace?.window?.contentView, let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) {
+            content.layoutSubtreeIfNeeded(); content.cacheDisplay(in: content.bounds, to: bitmap)
+            try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/research-workspace.png"))
+        }
+        workspace?.window?.close()
         willSleep()
         precondition(countdown.isPaused && activityLog.active == nil)
         try! Data("passed".utf8).write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".build/ui-smoke-passed"))
@@ -136,6 +192,13 @@ output.mkdir(parents=True, exist_ok=True)
 # Keep production visibility/motion gating unchanged.
 theme = Path("Sources/GlassTheme.swift").read_text().replace(" && window?.occlusionState.contains(.visible) == true", "")
 (output / "GlassTheme.swift").write_text(theme)
+source_path = 'FileManager.default.temporaryDirectory.appendingPathComponent("tomato-research-smoke-" + UUID().uuidString)'
+# Every UI run uses a fresh, isolated database; never touch the installed app data.
+app_source = (output / "AppDelegate.swift").read_text()
+a = app_source.index('            let folder = try FileManager.default.url(')
+b = app_source.index('            let store =', a)
+app_source = app_source[:a] + '            let folder = ' + source_path + '\n' + app_source[b:]
+(output / "AppDelegate.swift").write_text(app_source)
 entry = Path("Sources/main.swift").read_text().replace("app.run()", """DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
     delegate.runUISmoke()
     app.terminate(nil)

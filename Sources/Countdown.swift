@@ -1,6 +1,6 @@
 import Foundation
 
-struct Countdown: Codable {
+struct Countdown: Codable, Equatable {
     var duration: TimeInterval = 25 * 60
     var deadline: Date?
     var pausedRemaining: TimeInterval?

@@ -94,7 +94,7 @@ final class StatisticsBoard: NSView, NSTableViewDataSource, NSTableViewDelegate 
         return cell
     }
 
-    func reload(log: ActivityLog, now: Date) {
+    func reload(log: ActivityLog, now: Date, tasks: [ResearchTask] = []) {
         guard let day = Calendar.current.dateInterval(of: .day, for: date.dateValue) else { return }
         let records = log.records(at: now)
         let daily = records.filter { $0.seconds(in: day) > 0 }.sorted { $0.start < $1.start }
@@ -117,10 +117,11 @@ final class StatisticsBoard: NSView, NSTableViewDataSource, NSTableViewDelegate 
             rows = daily.map { ["\(format.string(from: max(day.start, $0.start)))–\(format.string(from: min(day.end, $0.end)))", $0.task, $0.category, ActivityLog.duration($0.seconds(in: day)), $0.reason] }
         } else {
             titles = ["完成状态", "任务 / 项目（全部日期）", "记录段数", "累计用时", "分类"]
-            let grouped = Dictionary(grouping: records, by: { $0.task })
+            let grouped = Dictionary(grouping: records, by: { $0.taskID?.uuidString ?? ("unlinked:" + $0.task) })
             rows = grouped.keys.sorted().map { task in
                 let items = grouped[task]!
-                return [log.completed[task] == nil ? "进行中" : "已完成", task, String(items.count), ActivityLog.duration(items.reduce(0) { $0 + $1.seconds }), Set(items.map { $0.category }).sorted().joined(separator: " / ")]
+                let linkedTask = items.first?.taskID.flatMap { id in tasks.first { $0.id == id } }
+                return [linkedTask?.status ?? "未关联任务", linkedTask?.title ?? items.first!.task, String(items.count), ActivityLog.duration(items.reduce(0) { $0 + $1.seconds }), Set(items.map { $0.category }).sorted().joined(separator: " / ")]
             }
         }
         for (column, title) in zip(table.tableColumns, titles) { column.title = title; column.headerCell.font = AppFont.font(12) }

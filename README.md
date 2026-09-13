@@ -10,6 +10,19 @@
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
 
+## 🔬 Research OS · Phase 1
+
+新增独立「科研工作台」：**项目 → 任务 → Focus Session → 可选短记**。
+
+- 项目：目标、阶段、里程碑、本周目标、下一步和累计投入。
+- 任务：Inbox、今天/本周/指定日期、优先级、截止日期、完成和归档。
+- Session：项目/任务/工作类型关联，暂停继续保持同一个 Session，结束可快速记录结果、发现或下一步。
+- 本地 SQLite，迁移前备份旧记录；支持完整 JSON 备份与冲突保护的合并恢复。
+
+[使用与迁移说明 / Phase 1 guide](docs/PHASE1.md)。科研日志、习惯、Research Map、Timeline 和 AI Analysis 将在后续阶段实现。
+
+![科研工作台，展示隔离测试数据](docs/research-workspace.png)
+
 ## 🦋 你的桌面专注小天地
 
 ![番茄钟实际界面](docs/screenshot.png)
@@ -30,7 +43,7 @@
 3. 在右侧「我的空间」调整背景、透明度、字体和提示音。
 4. 打开「时间统计 / 补记」回顾今天，或标记「任务完成」查看累计投入。
 
-同名任务合并累计。切换任务前先重置，已投入的时间会保存。关闭窗口后菜单栏仍运行；睡眠和退出会暂停计时，回来后手动继续。异常退出恢复到最近 30 秒保存点，不提供自动循环。
+任务按独立 ID 累计，同名任务可以分别属于不同项目。切换任务前先重置，已投入的时间会保存。关闭窗口后菜单栏仍运行；睡眠和退出会暂停计时，回来后手动继续。异常退出恢复到最近 30 秒保存点，不提供自动循环。
 
 **系统要求：** macOS 13+，Universal 支持 Apple Silicon / Intel。已实测 macOS 15.5 / Apple Silicon；Intel 与 macOS 13 尚未实机验证。安装包未经 Apple 公证，互联网下载后可能被 Gatekeeper 拦截；也可从源码构建。Release 提供 SHA-256 校验文件。
 

@@ -10,6 +10,19 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
+## 🔬 Research OS · Phase 1
+
+An independent workspace now connects **Projects → Tasks → Focus Sessions → Optional Notes**.
+
+- Projects: goals, stages, milestones, weekly objectives, next actions and invested time.
+- Tasks: Inbox, today/this week/specific dates, priorities, deadlines, completion and archiving.
+- Sessions: project/task/work-type associations; pause/resume remains one session, with optional results, findings and next actions.
+- Local SQLite with legacy backup/migration and conflict-protected JSON backup merging.
+
+[Phase 1 usage and migration guide](docs/PHASE1.md). Daily logs, habits, Research Map, timeline and AI analysis are planned for later phases.
+
+![Research workspace with isolated test data, interface in Chinese](docs/research-workspace.png)
+
 ## 🦋 A little corner for focus
 
 ![Actual timer interface, shown in Chinese](docs/screenshot.png)
@@ -30,7 +43,7 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 3. Use “我的空间” (My space) on the right to change the background, transparency, font and sound.
 4. Open “时间统计 / 补记” (Statistics / Manual entry) to review your day, or mark a task complete to review its total time.
 
-Tasks with the same name share totals. Reset before switching tasks; elapsed time is saved. Closing the window leaves the menu bar timer running. Sleep and quitting pause tracking; resume manually when you return. Crash recovery uses the last 30-second checkpoint. There are no automatic cycles. The app interface is currently Chinese; these READMEs are bilingual.
+Tasks use stable IDs, so same-name tasks in different projects have separate totals. Reset before switching tasks; elapsed time is saved. Closing the window leaves the menu bar timer running. Sleep and quitting pause tracking; resume manually when you return. Crash recovery uses the last 30-second checkpoint. There are no automatic cycles. The app interface is currently Chinese; these READMEs are bilingual.
 
 **Requirements:** macOS 13+, Universal binary for Apple Silicon / Intel. Runtime-tested on macOS 15.5 / Apple Silicon; Intel and macOS 13 have not been tested on hardware. Releases are not Apple-notarized, so Gatekeeper may block downloaded builds. Building from source is supported. SHA-256 checksums are included in Releases.
 
