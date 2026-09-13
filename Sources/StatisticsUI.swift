@@ -6,7 +6,7 @@ extension AppDelegate {
         if statisticsWindow == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1040, height: 650), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
             window.title = "时间记录 · 番茄时光"
-            window.appearance = NSAppearance(named: .darkAqua)
+            window.appearance = NSAppearance(named: .aqua)
             window.minSize = NSSize(width: 980, height: 530)
             window.isReleasedWhenClosed = false
             let board = StatisticsBoard(delegate: self)
@@ -15,7 +15,7 @@ extension AppDelegate {
             statisticsBoard = board
             statisticsDate = board.date
             statisticsWindow = window
-            AppFont.apply(to: board); StarGlass.apply(to: board)
+            AppFont.apply(to: board); SoftGlass.apply(to: board)
             window.center()
         }
         refreshStatistics()

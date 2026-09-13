@@ -39,23 +39,23 @@ final class ScheduleController: NSWindowController, NSOutlineViewDataSource, NSO
         self.app = app
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 790), styleMask: [.titled,.closable,.miniaturizable,.resizable], backing: .buffered, defer: false)
         window.title = "日程与目标 · Research Planner"; window.minSize = NSSize(width: 1080, height: 700)
-        window.appearance = NSAppearance(named: .darkAqua); window.isReleasedWhenClosed = false
+        window.appearance = NSAppearance(named: .aqua); window.isReleasedWhenClosed = false
         super.init(window: window)
         func button(_ title: String, _ selector: Selector) -> NSButton { let b = NSButton(title: title,target:self,action:selector); b.bezelStyle = .rounded; return b }
         let title = NSTextField(labelWithString: "RESEARCH PLANNER  /  课题 · 月目标 · 周目标 · 每日执行")
-        title.font = .systemFont(ofSize: 20,weight:.semibold); title.textColor = .white
+        title.font = .systemFont(ofSize: 20,weight:.semibold); title.textColor = .labelColor
         modes.selectedSegment = 0; modes.target = self; modes.action = #selector(viewChanged)
         date.datePickerElements = [.yearMonthDay]; date.dateValue = Date(); date.target = self; date.action = #selector(dateChanged)
         projects.target = self; projects.action = #selector(projectChanged); projects.widthAnchor.constraint(lessThanOrEqualToConstant:220).isActive = true
         hideDone.target = self; hideDone.action = #selector(viewChanged)
         let navigation = glassStack([modes, button("‹",#selector(previous)),button("今天",#selector(today)),button("›",#selector(next)), date, projects, hideDone],vertical:false,spacing:8)
         let navCard = NSView(); navCard.wantsLayer = true
-        navCard.layer?.backgroundColor = StarGlass.panel.cgColor; navCard.layer?.cornerRadius = 8
-        StarGlass.frost(navCard); navCard.addSubview(navigation); navigation.translatesAutoresizingMaskIntoConstraints = false
+        navCard.layer?.backgroundColor = SoftGlass.panel.cgColor; navCard.layer?.cornerRadius = 8
+        SoftGlass.frost(navCard); navCard.addSubview(navigation); navigation.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([navigation.leadingAnchor.constraint(equalTo:navCard.leadingAnchor,constant:8),navigation.trailingAnchor.constraint(lessThanOrEqualTo:navCard.trailingAnchor,constant:-8),navigation.topAnchor.constraint(equalTo:navCard.topAnchor,constant:6),navigation.bottomAnchor.constraint(equalTo:navCard.bottomAnchor,constant:-6)])
         let actions = glassStack([button("＋ 月目标",#selector(addMonth)),button("＋ 周目标",#selector(addWeek)),button("＋ 每日 Todo",#selector(addTodo)),button("编辑选中",#selector(editSelected)),button("勾选 / 重开",#selector(toggleSelected)),button("去专注",#selector(focusSelected)),button("全部折叠",#selector(collapseAll)),button("全部展开",#selector(expandAll))],vertical:false,spacing:8)
-        summary.lineBreakMode = .byTruncatingTail; summary.textColor = NSColor.white.withAlphaComponent(0.9); summary.font = AppFont.font(13)
-        detail.textColor = .white; detail.font = AppFont.font(13); detail.maximumNumberOfLines = 3
+        summary.lineBreakMode = .byTruncatingTail; summary.textColor = .secondaryLabelColor; summary.font = AppFont.font(13)
+        detail.textColor = .secondaryLabelColor; detail.font = AppFont.font(13); detail.maximumNumberOfLines = 3
         calendar.controller = self; calendar.translatesAutoresizingMaskIntoConstraints = false
         let col = NSTableColumn(identifier:.init("plan")); col.title = "课题 → 月份 / 月目标 → 周目标 → 日期 → Todo"; col.width = 1020
         outline.addTableColumn(col); outline.outlineTableColumn = col
@@ -64,9 +64,9 @@ final class ScheduleController: NSWindowController, NSOutlineViewDataSource, NSO
         outlineScroll.documentView = outline; outlineScroll.hasVerticalScroller = true; outlineScroll.translatesAutoresizingMaskIntoConstraints = false
         for v in [calendar,outlineScroll] { content.addSubview(v); NSLayoutConstraint.activate([v.leadingAnchor.constraint(equalTo:content.leadingAnchor),v.trailingAnchor.constraint(equalTo:content.trailingAnchor),v.topAnchor.constraint(equalTo:content.topAnchor),v.bottomAnchor.constraint(equalTo:content.bottomAnchor)]) }
         let layout = glassStack([title,navCard,actions,summary,content,detail],spacing:12)
-        let root = KleinSurface(); window.contentView = root; root.addSubview(layout); layout.translatesAutoresizingMaskIntoConstraints = false
+        let root = PlannerSurface(); window.contentView = root; root.addSubview(layout); layout.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([layout.topAnchor.constraint(equalTo:root.topAnchor,constant:22),layout.leadingAnchor.constraint(equalTo:root.leadingAnchor,constant:22),layout.trailingAnchor.constraint(equalTo:root.trailingAnchor,constant:-22),layout.bottomAnchor.constraint(equalTo:root.bottomAnchor,constant:-20),navCard.widthAnchor.constraint(equalTo:layout.widthAnchor),summary.widthAnchor.constraint(equalTo:layout.widthAnchor),content.widthAnchor.constraint(equalTo:layout.widthAnchor),content.heightAnchor.constraint(greaterThanOrEqualToConstant:430),detail.widthAnchor.constraint(equalTo:layout.widthAnchor),detail.heightAnchor.constraint(equalToConstant:64)])
-        StarGlass.apply(to: root); window.center(); reload()
+        SoftGlass.apply(to: root); window.center(); reload()
     }
     required init?(coder: NSCoder) { fatalError() }
     @objc func projectChanged() { selectedTaskID = nil; selectedGoalID = nil; reload() }
@@ -276,7 +276,7 @@ final class ScheduleController: NSWindowController, NSOutlineViewDataSource, NSO
     }
 }
 
-final class KleinSurface: StarfieldSurface {}
+final class PlannerSurface: GroupedSurface {}
 
 final class ScheduleCanvas: NSView {
     weak var controller:ScheduleController?
@@ -297,13 +297,13 @@ final class ScheduleCanvas: NSView {
         let needed=PlanDates.calendar.dateComponents([.day],from:begin,to:end).day!
         let rows=month ? Int(ceil(Double(needed)/7)) : 1
         let days=PlanDates.days(start:begin,count:rows*7), w=bounds.width/7, h=(bounds.height-26)/CGFloat(rows)
-        let ink=StarGlass.accent
-        for (i,name) in ["周一","周二","周三","周四","周五","周六","周日"].enumerated() { label(name,NSRect(x:CGFloat(i)*w+10,y:0,width:w-12,height:22),13,.white,true) }
+        let ink=SoftGlass.accent
+        for (i,name) in ["周一","周二","周三","周四","周五","周六","周日"].enumerated() { label(name,NSRect(x:CGFloat(i)*w+10,y:0,width:w-12,height:22),13,.secondaryLabelColor,true) }
         for (i,date) in days.enumerated() {
             let key=PlanDates.key(date), r=NSRect(x:CGFloat(i%7)*w+3,y:26+CGFloat(i/7)*h+3,width:w-6,height:h-6)
             let outside=month && PlanDates.month(date) != PlanDates.month(c.date.dateValue)
-            StarGlass.panel.withAlphaComponent(outside ? 0.35 : 0.78).setFill(); let path=NSBezierPath(roundedRect:r,xRadius:10,yRadius:10); path.fill(); StarGlass.accent.withAlphaComponent(0.22).setStroke(); path.lineWidth=1; path.stroke()
-            if key == c.selectedDay { NSColor(srgbRed:0.45,green:0.79,blue:1,alpha:1).setStroke(); path.lineWidth=3; path.stroke() }
+            SoftGlass.panel.withAlphaComponent(outside ? 0.35 : 0.78).setFill(); let path=NSBezierPath(roundedRect:r,xRadius:16,yRadius:16); path.fill(); SoftGlass.separator.setStroke(); path.lineWidth=1; path.stroke()
+            if key == c.selectedDay { SoftGlass.accent.setStroke(); path.lineWidth=2; path.stroke() }
             let dateTitle=String(key.suffix(5))+(key == PlanDates.key(Date()) ? " 今天" : "")
             label(dateTitle,NSRect(x:r.minX+9,y:r.minY+8,width:r.width-16,height:20),month ? 12 : 14,ink,true)
             cells.append((r,key)); let tasks=c.tasks(on:key)
@@ -314,7 +314,7 @@ final class ScheduleCanvas: NSView {
                 if t.id == c.selectedTaskID { ink.withAlphaComponent(0.12).setFill(); NSBezierPath(roundedRect:line,xRadius:5,yRadius:5).fill() }
                 let box=NSRect(x:line.minX+3,y:line.minY+3,width:month ? 11 : 13,height:month ? 11 : 13)
                 ink.setStroke(); let check=NSBezierPath(roundedRect:box,xRadius:3,yRadius:3); check.lineWidth=1.2; check.stroke()
-                if t.completedAt != nil { ink.setFill(); check.fill(); label("✓",box.insetBy(dx:1,dy:-1),11,NSColor(srgbRed:0.06,green:0.10,blue:0.25,alpha:1),true) }
+                if t.completedAt != nil { ink.setFill(); check.fill(); label("✓",box.insetBy(dx:1,dy:-1),11,.white,true) }
                 label(t.title,NSRect(x:box.maxX+5,y:line.minY+2,width:line.maxX-box.maxX-7,height:16),month ? 11 : 12,t.completedAt == nil ? .labelColor : .secondaryLabelColor,true)
                 if !month { label(PlanDates.time(t)+" · "+(t.plannedDuration.map{"\($0) 分钟"} ?? "未估时"),NSRect(x:line.minX+4,y:line.minY+25,width:line.width-6,height:18),11,ink) }
                 hits.append((line,box,t.id,key))

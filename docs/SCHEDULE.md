@@ -1,6 +1,6 @@
 # 日程与目标 · Research Planner
 
-v1.10.0 新增克莱因蓝（#002FA7）渐变的独立规划面板。
+v1.10.0 新增独立规划面板；v1.10.2 更新为 iPhone 风格的浅色圆角界面。
 
 入口：菜单栏「日程与目标…」，或科研工作台顶部「日程目标」。
 
@@ -50,7 +50,7 @@ v1.10.0 新增克莱因蓝（#002FA7）渐变的独立规划面板。
 
 ## English
 
-Research Planner adds a Klein-blue gradient panel with weekly and monthly calendars plus a collapsible outline: **Project → Month → Monthly Goal → Weekly Goal → Date → Todo**.
+Research Planner adds a light grouped panel with weekly and monthly calendars plus a collapsible outline: **Project → Month → Monthly Goal → Weekly Goal → Date → Todo**.
 
 Open **日程与目标…** in the menu bar or **日程目标** in Research Workspace. Create a monthly goal for a project, optionally repeat it across 1–24 consecutive months, then create weekly goals and link daily Todos. Each Todo can include detailed execution notes, an optional start time and estimated minutes. Completion uses the existing Task identity and stays synchronized with the workspace; selected Todos can be opened in Focus.
 

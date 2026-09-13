@@ -10,13 +10,13 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
-## 🌃 Starry frosted glass · 1.10.1
+## iPhone-inspired interface · 1.10.2
 
-The workspace, planner, research board, records and editors share a purple, blue and navy gradient with native frosted panels and translucent cards. Static stars require no background animation. Comic Sans MS and the existing animated butterfly wallpaper remain available.
+A light grouped background, rounded cards and subtle frosted panels unify the planner, research board, workspace and editors. No gradient or dotted backgrounds; blue is reserved for actions and selection.
 
 ## 🗓️ Research Planner · 1.10
 
-A Klein-blue gradient planner connects **Projects → Monthly Goals → Weekly Goals → Daily Todos**. Weekly/monthly calendars, consecutive-month planning, detailed daily execution, synchronized checkboxes and a collapsible outline keep long plans manageable.
+A light grouped planner connects **Projects → Monthly Goals → Weekly Goals → Daily Todos**. Weekly/monthly calendars, consecutive-month planning, detailed daily execution, synchronized checkboxes and a collapsible outline keep long plans manageable.
 
 [Planner guide](docs/SCHEDULE.md)
 

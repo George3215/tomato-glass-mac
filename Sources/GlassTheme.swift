@@ -77,21 +77,8 @@ final class DreamBackground: NSView {
             NSColor.black.withAlphaComponent(0.23).setFill()
             bounds.fill()
         } else {
-        NSGradient(colors: [NSColor(srgbRed: 0.13, green: 0.12, blue: 0.29, alpha: 1),
-                            NSColor(srgbRed: 0.06, green: 0.16, blue: 0.43, alpha: 1),
-                            NSColor(srgbRed: 0.27, green: 0.14, blue: 0.44, alpha: 1)])!.draw(in: bounds, angle: 30)
-            for i in 0..<8 {
-                let x = CGFloat(i) * bounds.width / 6 - 150
-                let oval = NSBezierPath(ovalIn: NSRect(x: x, y: sin(Double(i)) * 170 - 160, width: 580, height: 600))
-                NSColor(srgbRed: 0.80, green: 0.65, blue: 1, alpha: 0.055).setFill()
-                oval.fill()
-            }
-            let curve = NSBezierPath()
-            curve.move(to: NSPoint(x: -60, y: 130))
-            curve.curve(to: NSPoint(x: bounds.width + 80, y: 390), controlPoint1: NSPoint(x: 330, y: 560), controlPoint2: NSPoint(x: 420, y: -140))
-            curve.lineWidth = 2
-            NSColor.white.withAlphaComponent(0.16).setStroke()
-            curve.stroke()
+            NSColor(srgbRed: 0.15, green: 0.15, blue: 0.17, alpha: 1).setFill()
+            bounds.fill()
         }
     }
 }
@@ -150,38 +137,31 @@ func glassButton(_ title: String, target: AnyObject, action: Selector) -> NSButt
 }
 
 
-/// Shared, static night-sky backdrop. No timer or additional image buffers.
-class StarfieldSurface: NSView {
-    override func draw(_ dirtyRect: NSRect) { StarGlass.drawSky(in: bounds) }
+/// A quiet, grouped background shared by the planning and record windows.
+class GroupedSurface: NSView {
+    override func draw(_ dirtyRect: NSRect) { SoftGlass.drawBackground(in: bounds) }
 }
 
-enum StarGlass {
-    static let panel = NSColor(srgbRed: 0.13, green: 0.16, blue: 0.36, alpha: 0.78)
-    static let accent = NSColor(srgbRed: 0.66, green: 0.76, blue: 1, alpha: 1)
-    static func drawSky(in rect: NSRect) {
-        NSGradient(colors: [NSColor(srgbRed: 0.035, green: 0.055, blue: 0.16, alpha: 1),
-                            NSColor(srgbRed: 0.06, green: 0.16, blue: 0.43, alpha: 1),
-                            NSColor(srgbRed: 0.27, green: 0.14, blue: 0.44, alpha: 1)])!.draw(in: rect, angle: 28)
-        for i in 0..<65 {
-            let x = rect.minX + CGFloat((i * 173 + 31) % 997) / 997 * rect.width
-            let y = rect.minY + CGFloat((i * 283 + 73) % 991) / 991 * rect.height
-            NSColor.white.withAlphaComponent(i % 4 == 0 ? 0.30 : 0.12).setFill()
-            let size: CGFloat = i % 5 == 0 ? 2 : 1
-            NSBezierPath(ovalIn: NSRect(x: x, y: y, width: size, height: size)).fill()
-        }
+enum SoftGlass {
+    static let panel = NSColor.white
+    static let accent = NSColor(srgbRed: 0, green: 0.478, blue: 1, alpha: 1)
+    static let separator = NSColor(srgbRed: 0.23, green: 0.23, blue: 0.26, alpha: 0.12)
+    static func drawBackground(in rect: NSRect) {
+        NSColor(srgbRed: 0.949, green: 0.949, blue: 0.969, alpha: 1).setFill()
+        rect.fill()
     }
     static func frost(_ view: NSView) {
-        guard !view.subviews.contains(where: { $0.identifier?.rawValue == "star-glass-effect" }) else { return }
+        guard !view.subviews.contains(where: { $0.identifier?.rawValue == "soft-glass-effect" }) else { return }
         view.wantsLayer = true
         view.layer?.backgroundColor = panel.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 1 : 0.40).cgColor
-        view.layer?.cornerRadius = 12
+        view.layer?.cornerRadius = 18
         view.layer?.masksToBounds = true
         view.layer?.borderWidth = 1
-        view.layer?.borderColor = accent.withAlphaComponent(0.22).cgColor
+        view.layer?.borderColor = separator.cgColor
         let effect = NSVisualEffectView(frame: view.bounds)
-        effect.identifier = .init("star-glass-effect")
+        effect.identifier = .init("soft-glass-effect")
         effect.autoresizingMask = [.width, .height]
-        effect.material = .hudWindow; effect.blendingMode = .withinWindow; effect.state = .active
+        effect.material = .contentBackground; effect.blendingMode = .withinWindow; effect.state = .active
         effect.wantsLayer = true
         effect.layer?.backgroundColor = panel.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 1 : 0.40).cgColor
         view.addSubview(effect, positioned: .below, relativeTo: nil)
@@ -200,7 +180,7 @@ enum StarGlass {
         }
         if let text = view as? NSTextView {
             text.drawsBackground = false; text.textColor = .labelColor
-            text.insertionPointColor = .white
+            text.insertionPointColor = accent
         }
         for child in view.subviews where !(child is NSVisualEffectView) { apply(to: child) }
     }
@@ -208,13 +188,13 @@ enum StarGlass {
 
 extension NSAlert {
     @discardableResult func runGlassModal() -> NSApplication.ModalResponse {
-        window.appearance = NSAppearance(named: .darkAqua)
-        if let accessoryView { StarGlass.apply(to: accessoryView) }
+        window.appearance = NSAppearance(named: .aqua)
+        if let accessoryView { SoftGlass.apply(to: accessoryView) }
         if let root = window.contentView {
-            let sky = StarfieldSurface(frame: root.bounds)
-            sky.autoresizingMask = [.width, .height]
-            root.addSubview(sky, positioned: .below, relativeTo: nil)
-            StarGlass.apply(to: root)
+            let background = GroupedSurface(frame: root.bounds)
+            background.autoresizingMask = [.width, .height]
+            root.addSubview(background, positioned: .below, relativeTo: nil)
+            SoftGlass.apply(to: root)
         }
         return runModal()
     }

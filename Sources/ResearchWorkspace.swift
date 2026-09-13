@@ -25,7 +25,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         window.title = "🍅 Research Workspace · 科研工作台"
         window.minSize = NSSize(width: 1100, height: 600)
         window.isReleasedWhenClosed = false
-        window.appearance = NSAppearance(named: .darkAqua)
+        window.appearance = NSAppearance(named: .aqua)
         super.init(window: window)
         navigation.selectedSegment = 0; navigation.target = self; navigation.action = #selector(pageChanged)
         search.placeholderString = "搜索名称 / 短记"
@@ -56,7 +56,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             scroll.widthAnchor.constraint(equalTo: layout.widthAnchor), scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 200),
             details.widthAnchor.constraint(equalTo: layout.widthAnchor), details.heightAnchor.constraint(equalToConstant: 225)
         ])
-        AppFont.apply(to: root); StarGlass.apply(to: root)
+        AppFont.apply(to: root); SoftGlass.apply(to: root)
         window.center(); reload()
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -330,7 +330,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
 }
 
 
-private final class ResearchSurface: StarfieldSurface {}
+private final class ResearchSurface: GroupedSurface {}
 
 
 private final class ResearchFormDocument: NSView {

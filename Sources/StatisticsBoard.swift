@@ -1,6 +1,6 @@
 import AppKit
 
-final class StatisticsBoard: StarfieldSurface, NSTableViewDataSource, NSTableViewDelegate {
+final class StatisticsBoard: GroupedSurface, NSTableViewDataSource, NSTableViewDelegate {
     let date = NSDatePicker()
     let mode = NSSegmentedControl(labels: ["当日记录", "任务累计"], trackingMode: .selectOne, target: nil, action: nil)
     let table = NSTableView()
@@ -69,7 +69,7 @@ final class StatisticsBoard: StarfieldSurface, NSTableViewDataSource, NSTableVie
     }
     required init?(coder: NSCoder) { fatalError() }
     override func draw(_ dirtyRect: NSRect) {
-        StarGlass.drawSky(in: bounds)
+        SoftGlass.drawBackground(in: bounds)
     }
     @objc private func changed() { onRefresh?() }
     func numberOfRows(in tableView: NSTableView) -> Int { rows.count }
