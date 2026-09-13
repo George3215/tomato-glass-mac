@@ -28,6 +28,12 @@ enum ResearchBackup {
             sessions[i].countdown.pause(at: end); sessions[i].reason = "备份恢复后暂停"
         }
         try append(sessions, to: &result.sessions)
+        if let graph = incoming.graph {
+            var merged = result.graph ?? ResearchGraph()
+            try append(graph.nodes, to: &merged.nodes)
+            try append(graph.edges, to: &merged.edges)
+            result.graph = merged
+        }
         try result.validate()
         let records = result.activityLog(at: Date()).entries.sorted { $0.start < $1.start }
         for i in records.indices.dropFirst() where records[i].start < records[i - 1].end {

@@ -105,3 +105,29 @@ var overlapping = decoded
 var overlap = decoded.sessions[0]; overlap.id = UUID(); overlapping.sessions.append(overlap)
 expectFailure { _ = try ResearchBackup.merge(overlapping, into: decoded) }
 print("PASS: failed-write rollback, deletion protection, corrupted migration, running backup recovery, cross-session overlap rejection")
+
+// Graph data must survive SQLite and backup round-trips, including old backups with no graph key.
+var graph = ResearchGraph()
+let question = ResearchGraph.Node(title: "Question", kind: "问题", important: true, projectID: project.id, x: 30, y: 40)
+let experiment = ResearchGraph.Node(title: "Experiment", kind: "实验", projectID: project.id, x: 450, y: 220)
+graph.nodes = [question, experiment]
+graph.edges = [.init(from: question.id, to: experiment.id, relation: "验证")]
+try crash.change { $0.graph = graph }
+assert(try! repository.load().graph == graph)
+let graphBackup = try JSONDecoder().decode(ResearchState.self, from: ResearchBackup.encode(crash.state))
+assert(try! ResearchBackup.merge(graphBackup, into: ResearchState()).graph == graph)
+var oldJSON = try JSONSerialization.jsonObject(with: ResearchBackup.encode(crash.state)) as! [String: Any]
+oldJSON.removeValue(forKey: "graph")
+let oldSnapshot = try JSONDecoder().decode(ResearchState.self, from: JSONSerialization.data(withJSONObject: oldJSON))
+assert(oldSnapshot.graph == nil)
+assert(try! ResearchBackup.merge(oldSnapshot, into: crash.state).graph == graph)
+var brokenGraph = graph; brokenGraph.edges[0].to = UUID()
+expectFailure { try crash.change { $0.graph = brokenGraph } }
+assert(crash.state.graph == graph)
+var deleted = graph; deleted.remove(node: question.id)
+assert(deleted.edges.isEmpty && deleted.nodes.count == 1)
+try crash.change { $0.graph = deleted }
+assert(try! repository.load().graph == deleted)
+try crash.change { $0.graph = graph }
+assert(try! repository.load().graph == graph)
+print("PASS: graph persistence, legacy backup compatibility, edge validation, node deletion and restoration")

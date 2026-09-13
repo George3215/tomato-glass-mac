@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDataSource, NSTableViewDelegate {
     unowned let app: AppDelegate
-    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置"], trackingMode: .selectOne, target: nil, action: nil)
+    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置", "研究看板"], trackingMode: .selectOne, target: nil, action: nil)
     let search = NSSearchField()
     let filter = NSPopUpButton()
     let table = NSTableView()
@@ -63,6 +63,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
     @objc func pageChanged() {
         filter.selectItem(at: 0); search.stringValue = ""; reload()
         if navigation.selectedSegment == 3 { app.showSettings() }
+        if navigation.selectedSegment == 6 { app.showResearchBoard() }
     }
     @objc func filterChanged() { reload() }
     func numberOfRows(in tableView: NSTableView) -> Int { rowValues.count }
@@ -123,7 +124,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         if page == 5 {
             create.isEnabled = true; create.title = "导出完整备份"
             edit.isEnabled = true; edit.title = "导入备份（合并）"
-            detail.string = "设置与数据\n\n字体、背景、透明度和提示音：在 Focus 窗口的「我的空间」设置。\n科研数据：本机 Application Support 下 research.sqlite。旧版原始数据保留于 legacy-v1-backup.json。\n完整备份导出项目、任务、Session 与短记；导入按 ID 合并，相同 ID 内容冲突会拒绝，避免覆盖当前记录。导入前自动保存本机备份。\n当前仍离线运行；Research Map、习惯、日志与 AI 分析将在后续阶段加入。"
+            detail.string = "设置与数据\n\n字体、背景、透明度和提示音：在 Focus 窗口的「我的空间」设置。\n科研数据：本机 Application Support 下 research.sqlite。旧版原始数据保留于 legacy-v1-backup.json。\n完整备份导出项目、任务、Session、短记与研究看板；导入按 ID 合并，相同 ID 内容冲突会拒绝，避免覆盖当前记录。导入前自动保存本机备份。\n当前仍离线运行；研究看板可由顶部或菜单栏打开。习惯、日志与 AI 分析将在后续阶段加入。"
             return
         }
         create.title = "新建"; edit.title = "编辑 / 短记"
@@ -135,7 +136,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             detail.string = "\(t.title)\n\(projectName(t.projectID)) · \(t.status) · \(t.priority)\n安排：\(t.schedule) \(t.scheduledDate.map(stamp) ?? "")\n截止：\(t.dueDate.map(stamp) ?? "未设置")\n累计：\(ActivityLog.duration(seconds))\n\n\(t.description)\n\nID：\(t.id.uuidString)"
         } else if let s = state.sessions.first(where: { $0.id == id }), page == 4 {
             detail.string = "\(s.title) · \(s.workType) · \(s.isOpen ? (s.countdown.isPaused ? "暂停中" : "计时中") : s.reason)\n\(stamp(s.createdAt)) → \(s.endedAt.map(stamp) ?? "未结束")\n\(s.segments.count) 个已保存片段 · 来源 \(s.source)\(s.source == "legacy" ? "（旧版番茄次数不可还原）" : "")\n\n短记：\(s.note.text)\n结果：\(s.note.result)\n发现：\(s.note.finding)\n问题：\(s.note.question)\nIdea：\(s.note.idea)\n下一步：\(s.note.nextAction)"
-        } else { detail.string = page == 3 ? "Focus\n\n沿用原来的番茄钟。选择项目、任务、工作类型后开始。暂停和继续属于同一个 Session；结束可快速短记，也可以稍后补写。\n\n点击「去专注」打开番茄钟。" : "欢迎来到科研工作台\n\n先新建一个项目或临时任务，再开始专注。任务可保留在 Inbox，也可安排到今天、本周或指定日期。\n选择列表中的记录查看详情；Session 页面可补写记录。\n项目、任务与科研知识节点不同，本阶段不会自动生成 Research Graph。" }
+        } else { detail.string = page == 3 ? "Focus\n\n沿用原来的番茄钟。选择项目、任务、工作类型后开始。暂停和继续属于同一个 Session；结束可快速短记，也可以稍后补写。\n\n点击「去专注」打开番茄钟。" : "欢迎来到科研工作台\n\n先新建一个项目或临时任务，再开始专注。任务可保留在 Inbox，也可安排到今天、本周或指定日期。\n选择列表中的记录查看详情；Session 页面可补写记录。\n项目、任务不会自动变成节点；请在「研究看板」手动整理重要问题、观点和实验。" }
     }
     @objc func newItem() {
         if navigation.selectedSegment == 5 { exportBackup(); return }
@@ -301,7 +302,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             let imported = try JSONDecoder().decode(ResearchState.self, from: Data(contentsOf: url))
             let merged = try ResearchBackup.merge(imported, into: state)
             let alert = NSAlert(); alert.messageText = "确认合并科研备份？"
-            alert.informativeText = "导入文件包含 \(imported.projects.count) 个项目、\(imported.tasks.count) 个任务、\(imported.sessions.count) 个 Session。相同内容不会重复导入。"
+            alert.informativeText = "导入文件包含 \(imported.projects.count) 个项目、\(imported.tasks.count) 个任务、\(imported.sessions.count) 个 Session、\(imported.graph?.nodes.count ?? 0) 个研究节点。相同内容不会重复导入。"
             alert.addButton(withTitle: "合并"); alert.addButton(withTitle: "取消")
             guard alert.runModal() == .alertFirstButtonReturn else { return }
             // Revalidate against current state after the modal loop (the timer may have advanced).

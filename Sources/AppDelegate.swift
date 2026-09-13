@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var countdown = Countdown()
     var research: FocusSessionCoordinator!
     var workspace: ResearchWorkspaceWindowController?
+    var researchBoard: ResearchBoardController?
     var projectPicker: NSPopUpButton?
     var researchTaskPicker: NSPopUpButton?
     var workTypePicker: NSPopUpButton?
@@ -82,6 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("短休息 · 5 分钟", action: #selector(startPreset), tag: 5)
         add("长休息 · 15 分钟", action: #selector(startPreset), tag: 15)
         add("自定义倒计时…", action: #selector(showSettings))
+        add("研究进程看板…", action: #selector(showResearchBoard))
         add("科研工作台…", action: #selector(showWorkspace))
         add("时间统计与补记…", action: #selector(showStatistics))
         menu.addItem(.separator())
@@ -122,6 +124,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.presentError(error)
             return false
         }
+    }
+
+    @objc func showResearchBoard() {
+        if researchBoard == nil { researchBoard = ResearchBoardController(app: self) }
+        researchBoard?.reload(); researchBoard?.showWindow(nil)
+        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc func showWorkspace() {
@@ -252,7 +260,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         let closing = notification.object as? NSWindow
-        if ![settings, workspace?.window, statisticsWindow].compactMap({ $0 }).contains(where: { $0 !== closing && $0.isVisible }) {
+        if ![settings, workspace?.window, researchBoard?.window, statisticsWindow].compactMap({ $0 }).contains(where: { $0 !== closing && $0.isVisible }) {
             NSApp.setActivationPolicy(.accessory)
         }
     }

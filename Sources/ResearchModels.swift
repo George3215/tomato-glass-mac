@@ -68,6 +68,7 @@ struct SessionNote: Codable, Equatable {
 }
 
 struct ResearchState: Codable, Equatable {
+    var graph: ResearchGraph?
     var version = 1
     var projects: [ResearchProject] = []
     var tasks: [ResearchTask] = []
@@ -78,6 +79,7 @@ struct ResearchState: Codable, Equatable {
         func require(_ test: Bool, _ text: String) throws { if !test { throw ResearchError.message(text) } }
         try require(version == 1, "不支持的科研数据版本")
         let pids = Set(projects.map { $0.id }), tids = Set(tasks.map { $0.id })
+        try graph?.validate(projects: pids)
         try require(pids.count == projects.count && tids.count == tasks.count && Set(sessions.map { $0.id }).count == sessions.count, "数据 ID 重复")
         try require(sessions.filter { $0.isOpen }.count <= 1, "只能有一个未结束的 Session")
         for p in projects { try require(!p.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && p.title.count <= 300, "项目名需为 1–300 字") }

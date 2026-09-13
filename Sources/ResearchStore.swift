@@ -61,7 +61,10 @@ final class SQLiteResearchStore: ResearchRepository {
             func read<T: Decodable>(_ table: String, as: T.Type) throws -> [T] {
                 try rows("SELECT data FROM \(table) ORDER BY rowid").map { try decoder.decode(T.self, from: Data($0[0].utf8)) }
             }
-            let state = ResearchState(projects: try read("projects", as: ResearchProject.self), tasks: try read("tasks", as: ResearchTask.self), sessions: try read("sessions", as: FocusSession.self))
+            var state = ResearchState(projects: try read("projects", as: ResearchProject.self), tasks: try read("tasks", as: ResearchTask.self), sessions: try read("sessions", as: FocusSession.self))
+            if let raw = try rows("SELECT value FROM metadata WHERE key='researchGraph'").first?.first {
+                state.graph = try decoder.decode(ResearchGraph.self, from: Data(raw.utf8))
+            }
             try state.validate()
             saved = state
             return state
@@ -92,6 +95,9 @@ final class SQLiteResearchStore: ResearchRepository {
                 }
                 for s in state.sessions where oldSessions[s.id] != s {
                     try execute("INSERT INTO sessions VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, task_id=excluded.task_id, data=excluded.data WHERE data != excluded.data", [s.id.uuidString, s.projectID?.uuidString, s.taskID?.uuidString, try json(s)])
+                }
+                if state.graph != saved.graph {
+                    try execute("INSERT OR REPLACE INTO metadata VALUES ('researchGraph', ?)", [try json(state.graph ?? ResearchGraph())])
                 }
                 try execute("INSERT OR REPLACE INTO metadata VALUES ('initialized', '1')")
                 try execute("COMMIT")

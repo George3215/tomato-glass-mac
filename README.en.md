@@ -10,6 +10,14 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
+## 🧩 Editable research board · 1.9
+
+A separate 2D canvas for questions, viewpoints, experiments and other research nodes. Drag nodes, mark important ideas, edit directed connections, pan/zoom, filter and undo. Saved locally and included in backups.
+
+[Board guide](docs/RESEARCH_BOARD.md)
+
+![Editable research board, example data](docs/research-board.png)
+
 ## 🔬 Research OS · Phase 1
 
 An independent workspace now connects **Projects → Tasks → Focus Sessions → Optional Notes**.
@@ -19,7 +27,7 @@ An independent workspace now connects **Projects → Tasks → Focus Sessions �
 - Sessions: project/task/work-type associations; pause/resume remains one session, with optional results, findings and next actions.
 - Local SQLite with legacy backup/migration and conflict-protected JSON backup merging.
 
-[Phase 1 usage and migration guide](docs/PHASE1.md). Daily logs, habits, Research Map, timeline and AI analysis are planned for later phases.
+[Phase 1 usage and migration guide](docs/PHASE1.md). Daily logs, habits, timeline and AI analysis are planned for later phases.
 
 ![Research workspace with isolated test data, interface in Chinese](docs/research-workspace.png)
 

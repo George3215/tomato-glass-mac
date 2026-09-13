@@ -168,6 +168,47 @@ tests = r'''
             try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/records.png"))
         }
         statisticsWindow?.close()
+        showResearchBoard()
+        let board = researchBoard!
+        let q = ResearchGraph.Node(title: "示例：关键研究问题", kind: "问题", body: "哪些信息影响实验结果？", important: true, x: 40, y: 60)
+        let v = ResearchGraph.Node(title: "示例：重要观点", kind: "观点", body: "将观点与证据分开记录。", important: true, x: 400, y: 40)
+        let e = ResearchGraph.Node(title: "示例：实验验证", kind: "实验", body: "记录条件、结果和下一步。", status: "进行中", x: 400, y: 290)
+        precondition(board.commit { $0.nodes = [q,v,e]; $0.edges = [.init(from: q.id, to: v.id, relation: "启发"), .init(from: v.id, to: e.id, relation: "验证")] })
+        board.fit()
+        let surface = board.canvas
+        // Drive the actual AppKit drag handlers at the current zoom.
+        let startPoint = surface.screen(NSPoint(x: q.x + 40, y: q.y + 40))
+        func mouse(_ type: NSEvent.EventType, _ point: NSPoint) -> NSEvent {
+            NSEvent.mouseEvent(with: type, location: surface.convert(point, to: nil), modifierFlags: [], timestamp: 0, windowNumber: board.window!.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1)!
+        }
+        surface.mouseDown(with: mouse(.leftMouseDown,startPoint))
+        let destination = NSPoint(x:startPoint.x+30,y:startPoint.y+20)
+        surface.mouseDragged(with: mouse(.leftMouseDragged,destination)); surface.mouseUp(with: mouse(.leftMouseUp,destination))
+        precondition(board.graph.nodes.first { $0.id == q.id }!.x > q.x)
+        board.undoGraph(); precondition(board.graph.nodes.first { $0.id == q.id }!.x == q.x)
+        surface.selectedNode = q.id; board.deleteSelection(); precondition(board.graph.edges.count == 1)
+        board.undoGraph(); precondition(board.graph.nodes.count == 3 && board.graph.edges.count == 2)
+        board.importantOnly.state = .on; board.filtersChanged(); precondition(surface.visibleIDs.count == 2)
+        board.importantOnly.state = .off; board.filtersChanged()
+        board.connect.state = .on; board.relation.selectItem(withTitle: "依赖")
+        let qp = surface.screen(NSPoint(x:q.x+40,y:q.y+40)), ep = surface.screen(NSPoint(x:e.x+40,y:e.y+40))
+        surface.mouseDown(with: mouse(.leftMouseDown,qp)); surface.mouseUp(with: mouse(.leftMouseUp,qp))
+        surface.mouseDown(with: mouse(.leftMouseDown,ep)); surface.mouseUp(with: mouse(.leftMouseUp,ep))
+        precondition(board.graph.edges.count == 3)
+        board.connect.state = .off; board.undoGraph()
+        let anchor = NSPoint(x:surface.bounds.midX,y:surface.bounds.midY), beforeZoom = surface.world(NSPoint(x:surface.bounds.midX,y:surface.bounds.midY))
+        surface.zoom(by: 1.2, anchor: anchor)
+        precondition(abs(surface.world(anchor).x-beforeZoom.x) < 0.001)
+        board.fit()
+        acceptNewForm("表单测试节点"); board.addNode()
+        precondition(board.graph.nodes.contains { $0.title == "表单测试节点" })
+        board.undoGraph(); board.fit()
+        if let root = board.window?.contentView, let bitmap = root.bitmapImageRepForCachingDisplay(in: root.bounds) {
+            root.layoutSubtreeIfNeeded(); root.cacheDisplay(in: root.bounds, to: bitmap)
+            try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/research-board.png"))
+        }
+        board.window?.close()
+        print("PASS: research board node form, dragging, filter, connected deletion and undo")
         showWorkspace(); workspace!.navigation.selectedSegment = 4; workspace!.reload()
         precondition(!workspace!.rowIDs.isEmpty)
         workspace!.table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)

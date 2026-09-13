@@ -10,6 +10,14 @@
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
 
+## 🧩 可编辑研究进程看板 · 1.9
+
+独立二维画布，用节点标记**重要问题、观点、实验**等。支持拖动、重点星标、状态、方向连线、缩放平移、搜索筛选和撤销；布局自动保存，完整备份包含看板数据。
+
+[看板操作说明](docs/RESEARCH_BOARD.md)
+
+![可编辑研究看板，示例数据](docs/research-board.png)
+
 ## 🔬 Research OS · Phase 1
 
 新增独立「科研工作台」：**项目 → 任务 → Focus Session → 可选短记**。
@@ -19,7 +27,7 @@
 - Session：项目/任务/工作类型关联，暂停继续保持同一个 Session，结束可快速记录结果、发现或下一步。
 - 本地 SQLite，迁移前备份旧记录；支持完整 JSON 备份与冲突保护的合并恢复。
 
-[使用与迁移说明 / Phase 1 guide](docs/PHASE1.md)。科研日志、习惯、Research Map、Timeline 和 AI Analysis 将在后续阶段实现。
+[使用与迁移说明 / Phase 1 guide](docs/PHASE1.md)。科研日志、习惯、Timeline 和 AI Analysis 将在后续阶段实现。
 
 ![科研工作台，展示隔离测试数据](docs/research-workspace.png)
 
