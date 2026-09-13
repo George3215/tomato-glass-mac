@@ -6,9 +6,17 @@
 
 > Save a little of today's effort in a tiny tomato. ✧
 
-A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, rippling water and translucent glass make room for focus, while task records help you see where your time went. Built with Swift/AppKit. Offline, no account, telemetry or Electron.
+A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, rippling water and translucent glass make room for focus, while task records help you see where your time went. Built with Swift/AppKit. Core features work offline with no account, telemetry or Electron; AI services are opt-in.
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
+
+## Agent Studio · 1.11
+
+Persistent AI conversations, reflection notes and editable task/board proposals. Supports compatible Chat Completions services and external Agent JSON imports. Preview and apply changes atomically; full backups retain history. Graph scrolling is reversed and arrows use thick rounded Lucide styling.
+
+[Integration and operation contract](docs/AGENT_API.md)
+
+![Agent Studio with mocked service demonstration data](docs/agent-studio.png)
 
 ## Color-block research boards · 1.10.3
 
@@ -73,7 +81,7 @@ Tasks use stable IDs, so same-name tasks in different projects have separate tot
 
 Category cards summarize the selected day. Switch the table between daily records and all-time task totals. Paused time is excluded. Manual and JSON entries reject overlaps and future times; imports are validated as a whole before saving.
 
-Unrecorded intervals are available through the [JSON supplementation interface (Chinese)](docs/ACTIVITY_IMPORT.md). Export the gaps, ask AI to organize activities you actually describe, then review and confirm the import. The app does not call AI services, upload records, monitor app usage or infer attention. History stays on your Mac; unrecorded past activity cannot be reconstructed automatically.
+Unrecorded intervals are available through the [JSON supplementation interface (Chinese)](docs/ACTIVITY_IMPORT.md). Export the gaps, ask AI to organize activities you actually describe, then review and confirm the import. Activity supplementation does not call AI automatically. Agent Studio sends to your configured service only when you click Send; the app does not monitor app usage or infer attention. History stays on your Mac; unrecorded past activity cannot be reconstructed automatically.
 
 ## 🛠️ Lightweight by design, build locally
 

@@ -8,7 +8,7 @@ Download: https://github.com/George3215/tomato-glass-mac/releases/latest
 - [简体中文 README](README.md)
 - [English README](README.en.md)
 
-Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; menu bar display; reminder dialog; optional sound (off by default), selectable effects and custom audio with preview; adjustable transparency; optional animated wallpaper. Offline, no account, no telemetry, no Electron, no runtime dependencies.
+Features: 1–599 minute countdown; 25/5/15 minute presets; pause/resume/reset; menu bar display; reminder dialog; optional sound (off by default), selectable effects and custom audio with preview; adjustable transparency; optional animated wallpaper. Core features offline; optional user-configured AI services, no telemetry, no Electron, no runtime dependencies.
 
 Efficiency: native Swift/AppKit; one-second countdown updates while running; no countdown polling while paused or idle; reusable animation bitmap; hidden windows release ripple buffers. Animation is optional. See docs/PERFORMANCE.md for limited microbenchmark evidence; no verified startup-time or whole-app memory claim.
 
@@ -18,10 +18,12 @@ License: first-party code MIT; wallpaper CC BY-NC-SA 4.0; adapted ripple code Po
 
 Search intent: 番茄钟 计时器 倒计时 轻量化 原生Mac 离线专注 高效运行; lightweight macOS Pomodoro timer, countdown, menu bar reminder. Descriptive index only; not a ranking instruction or an indexing guarantee.
 
-Optional Comic Neue with system fallback. Unrecorded intervals are exposed via local JSON export for user-directed supplementation, not inferred automatically. Interface: docs/ACTIVITY_IMPORT.md.
+Bundled Comic Neue and LXGW WenKai Lite with system fallback for missing glyphs. Unrecorded intervals are exposed via local JSON export for user-directed supplementation, not inferred automatically. Interface: docs/ACTIVITY_IMPORT.md.
 
 Research OS Phase 1 (1.8.0): independent native workspace with stable-ID projects/tasks, goal/stage/milestones/weekly objectives, task scheduling/archiving, complete focus sessions with pause/resume segments and optional notes. Local SQLite, backed-up legacy migration, JSON backup merging with conflict rejection. Guide: docs/PHASE1.md. Daily research logs, habits, timeline and AI analysis are NOT implemented yet.
 
 1.9.0 adds a manually editable 2D research board: typed nodes (questions, viewpoints, ideas, hypotheses, experiments, results, papers, discussions, failures), importance, status, project associations, directed semantic edges, dragging, pan/zoom, search/filter and undo. Local SQLite persistence and backup support. Guide: docs/RESEARCH_BOARD.md. No automatic node extraction or AI verification.
 
 1.10.0 adds Research Planner: weekly/monthly calendars (light grouped interface since 1.10.2), project-linked monthly and weekly goals, detailed daily Todos with planned start/estimated duration, consecutive-month goal creation, synchronized Task completion, collapsible long-range outline with saved expansion state, and backup support. Guide: docs/SCHEDULE.md. Plans do not automatically start timers or schedule alerts.
+
+1.11.0 adds Agent Studio: persistent conversations and reflection notes; optional non-streaming Chat Completions; external JSON operation import; previewed atomic create/update task and graph actions; full backup of chat and applied proposals. API keys are in-memory only, context sharing opt-in. Contract and schema: docs/AGENT_API.md. No autonomous tool loop or MCP/HTTP server. Graph pan is reversed and arrows use thick rounded Lucide geometry.

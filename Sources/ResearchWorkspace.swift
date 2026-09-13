@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDataSource, NSTableViewDelegate {
     unowned let app: AppDelegate
-    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置", "研究看板", "日程目标"], trackingMode: .selectOne, target: nil, action: nil)
+    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置", "研究看板", "日程目标", "Agent"], trackingMode: .selectOne, target: nil, action: nil)
     let search = NSSearchField()
     let filter = NSPopUpButton()
     let table = NSTableView()
@@ -65,6 +65,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         if navigation.selectedSegment == 3 { app.showSettings() }
         if navigation.selectedSegment == 6 { app.showResearchBoard() }
         if navigation.selectedSegment == 7 { app.showSchedule() }
+        if navigation.selectedSegment == 8 { app.showAgent() }
     }
     @objc func filterChanged() { reload() }
     func numberOfRows(in tableView: NSTableView) -> Int { rowValues.count }

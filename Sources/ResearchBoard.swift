@@ -24,7 +24,7 @@ final class ResearchBoardController: NSWindowController {
         func button(_ title: String, _ action: Selector) -> NSButton { let b = NSButton(title: title, target: self, action: action); b.bezelStyle = .rounded; return b }
         connect.target = self; connect.action = #selector(connectChanged)
         relation.addItems(withTitles: ResearchGraph.relations)
-        let toolbar = glassStack([button("＋ 新节点", #selector(addNode)), button("编辑", #selector(editSelection)), button("★ 标为重点", #selector(toggleImportant)), connect, relation, button("删除", #selector(deleteSelection)), button("撤销", #selector(undoGraph)), button("−", #selector(zoomOut)), button("＋", #selector(zoomIn)), button("显示全部", #selector(fit))], vertical: false, spacing: 8)
+        let toolbar = glassStack([button("＋ 新节点", #selector(addNode)), button("Agent", #selector(openAgent)), button("编辑", #selector(editSelection)), button("★ 标为重点", #selector(toggleImportant)), connect, relation, button("删除", #selector(deleteSelection)), button("撤销", #selector(undoGraph)), button("−", #selector(zoomOut)), button("＋", #selector(zoomIn)), button("显示全部", #selector(fit))], vertical: false, spacing: 8)
         search.placeholderString = "搜索标题或内容"; search.widthAnchor.constraint(equalToConstant: 220).isActive = true
         search.target = self; search.action = #selector(filtersChanged)
         kind.addItems(withTitles: ["所有类型"] + ResearchGraph.kinds)
@@ -61,6 +61,7 @@ final class ResearchBoardController: NSWindowController {
         if let item = project.itemArray.first(where: { ($0.representedObject as? String) == selectedProject }) { project.select(item) }
         canvas.graph = graph; filtersChanged()
     }
+    @objc func openAgent() { app.showAgent() }
     @objc func filtersChanged() {
         let query = search.stringValue.lowercased(), projectID = project.selectedItem?.representedObject as? String
         canvas.visibleIDs = Set(graph.nodes.filter { n in
@@ -200,11 +201,15 @@ final class ResearchCanvas: NSView {
         for e in graph.edges {
             guard let (a,b) = endpoints(e) else { continue }
             let ink: NSColor = selectedEdge == e.id ? .systemPurple : .secondaryLabelColor
-            ink.setStroke(); let line = NSBezierPath(); line.move(to: a); line.line(to: b); line.lineWidth = selectedEdge == e.id ? 3 : 1.5; line.stroke()
+            // Lucide arrow-right geometry, adapted to arbitrary endpoints; see Lucide license.
+            ink.setStroke(); let line = NSBezierPath(); line.lineCapStyle = .round; line.lineJoinStyle = .round
+            line.move(to: a); line.line(to: b); line.lineWidth = selectedEdge == e.id ? 5.5 : 4; line.stroke()
             let angle = atan2(b.y-a.y,b.x-a.x)
-            let arrow = NSBezierPath(); arrow.move(to: b)
-            arrow.line(to: NSPoint(x: b.x - 12*cos(angle-0.45), y: b.y - 12*sin(angle-0.45)))
-            arrow.line(to: NSPoint(x: b.x - 12*cos(angle+0.45), y: b.y - 12*sin(angle+0.45))); arrow.close(); ink.setFill(); arrow.fill()
+            let arrow = NSBezierPath(); arrow.lineCapStyle = .round; arrow.lineJoinStyle = .round
+            arrow.move(to: NSPoint(x: b.x - 17*cos(angle-0.65), y: b.y - 17*sin(angle-0.65)))
+            arrow.line(to: b)
+            arrow.line(to: NSPoint(x: b.x - 17*cos(angle+0.65), y: b.y - 17*sin(angle+0.65)))
+            arrow.lineWidth = line.lineWidth; arrow.stroke()
             let r = NSRect(x: (a.x+b.x)/2 - 28, y: (a.y+b.y)/2 - 10, width: 64, height: 21)
             SoftGlass.panel.setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill()
             label(e.relation, in: r.insetBy(dx: 5, dy: 2), size: 11, color: ExhibitPalette.ink)
@@ -269,7 +274,7 @@ final class ResearchCanvas: NSView {
     }
     override func scrollWheel(with event: NSEvent) {
         if event.modifierFlags.contains(.command) { zoom(by: exp(-event.scrollingDeltaY*0.01), anchor: convert(event.locationInWindow,from:nil)) }
-        else { offset.x -= event.scrollingDeltaX; offset.y -= event.scrollingDeltaY; needsDisplay = true }
+        else { offset.x += event.scrollingDeltaX; offset.y += event.scrollingDeltaY; needsDisplay = true }
     }
     override func magnify(with event: NSEvent) { zoom(by: 1+event.magnification, anchor: convert(event.locationInWindow,from:nil)) }
     override func keyDown(with event: NSEvent) {

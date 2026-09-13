@@ -38,3 +38,7 @@ https://github.com/qianguyihao/Web is a frontend learning resource (CC BY-NC-SA 
 ## LXGW WenKai Lite / 霞鹜文楷轻便版
 
 Unmodified Regular font from https://github.com/lxgw/LxgwWenKai-Lite, font blob `8751570c043ae7bb9a0aa10773b031ca4ada9843`. Licensed under SIL OFL 1.1, including upstream Fontworks Klee attribution. Full copyright and terms: `Resources/Fonts/LXGWWenKai-OFL.txt`. Registered within the app process as the Chinese cascade for Comic Neue.
+
+## Lucide / Feather arrows
+
+Research board arrows adapt Lucide `arrow-right` (Feather-derived): https://github.com/lucide-icons/lucide. Adaptations: native NSBezierPath rendering, variable endpoint length/rotation, thicker round-capped strokes. Original SVG: `Resources/Licenses/Lucide-arrow-right.svg` (blob `433ded3fcc5f7bd2b6a59356c6ffe8eceac6b7e3`). Full ISC / MIT notices: `Resources/Licenses/Lucide-LICENSE.txt`.

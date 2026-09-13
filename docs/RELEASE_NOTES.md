@@ -1,12 +1,11 @@
-## 番茄时光 1.10.3 · 色块展板与 Comic Neue
+## 番茄时光 1.11.0 · Agent Studio
 
-- 奶油白背景搭配杏桃、鼠尾草绿、淡紫和淡黄色块，加入研究 / 日程展板标题区。
-- 研究节点按类型分色，日程 Todo 按项目分色；保留文字标签、重点与选中反馈。
-- 内置开源 Comic Neue 常规和粗体（SIL OFL 1.1），中文搭配开源霞鹜文楷 Lite；计时使用等宽数字。
-- 保留拖动、连线、折叠、计时和本地记录，无数据迁移。
+新增可配置的 AI 聊天与本地积累空间。兼容非流式 Chat Completions；也可导入外部 Agent JSON。任务、节点和连线提案经预览后原子应用，对话、复盘笔记和应用时间随完整备份保存。API Key 仅保留本次运行内存；项目上下文需主动勾选发送。提供操作契约、Schema 和示例 JSON。
+
+流程图滚动方向反转；采用 Lucide 开源箭头的加粗圆角样式。保留色块展板与开源中英字体。
 
 ## English
 
-Adds minimalist color-block research boards with cream, peach, sage and lavender surfaces. Node type and Todo project colors retain text labels and selection feedback. Bundles Comic Neue Regular and Bold under SIL OFL 1.1 with bundled LXGW WenKai Lite for Chinese and tabular timer digits. Existing graph, planning and timer workflows remain intact. No data migration.
+Adds Agent Studio with persistent conversations, local reflection notes and previewable task/graph operations. Supports compatible non-streaming Chat Completions endpoints and external Agent JSON imports. Operations save atomically and cannot be applied twice; full backups retain agent history. API keys remain in memory; context sharing is opt-in. Includes contract, schema and sample reply. Reverses graph scrolling and adopts thick rounded Lucide arrows.
 
-macOS 13+ Universal; not Apple-notarized. Bundled third-party butterfly/ripple assets remain noncommercial.
+Validation includes isolated database tests and mocked HTTP GUI tests; no live provider credentials were used. macOS 13+ Universal; not Apple-notarized. Bundled butterfly/ripple assets retain noncommercial licenses.

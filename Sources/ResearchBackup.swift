@@ -28,6 +28,11 @@ enum ResearchBackup {
             sessions[i].countdown.pause(at: end); sessions[i].reason = "备份恢复后暂停"
         }
         try append(sessions, to: &result.sessions)
+        if let archive = incoming.agent {
+            var merged = result.agent ?? AgentArchive()
+            try append(archive.conversations, to: &merged.conversations)
+            result.agent = merged
+        }
         if let graph = incoming.graph {
             var merged = result.graph ?? ResearchGraph()
             try append(graph.nodes, to: &merged.nodes)

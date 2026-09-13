@@ -162,3 +162,29 @@ var v19 = try JSONSerialization.jsonObject(with:ResearchBackup.encode(ResearchSt
 v19.removeValue(forKey:"schedule")
 assert(try! JSONDecoder().decode(ResearchState.self,from:JSONSerialization.data(withJSONObject:v19)).schedule == nil)
 print("PASS: monthly/weekly/daily hierarchy, Monday weeks, cross-month/year, goal references, completion, schedule backup and v1.9 compatibility")
+
+let agentRepo = try SQLiteResearchStore(url: folder.appendingPathComponent("agent.sqlite"))
+let agentCoordinator = FocusSessionCoordinator(state: ResearchState(), repository: agentRepo)
+let agentProject = UUID(), agentTask = UUID(), agentNode = UUID(), agentNode2 = UUID()
+let operations = [AgentOperation(action:"create_project",id:agentProject,title:"Agent test"), AgentOperation(action:"create_task",id:agentTask,title:"Prepare experiment",projectID:agentProject), AgentOperation(action:"create_node",id:agentNode,title:"Question",projectID:agentProject), AgentOperation(action:"create_node",id:agentNode2,title:"Experiment",kind:"实验",x:320), AgentOperation(action:"create_edge",id:UUID(),from:agentNode,to:agentNode2)]
+let proposal = AgentMessage(role:"assistant",text:"Proposed plan",operations:operations)
+var conversation = AgentConversation(title:"Agent test"); conversation.messages=[proposal]
+try agentCoordinator.change { $0.agent=AgentArchive(conversations:[conversation]) }
+try agentCoordinator.change { try AgentActions.commit(messageID:proposal.id,conversationID:conversation.id,in:&$0) }
+let appliedState=agentCoordinator.state
+assert(appliedState.tasks.count == 1 && appliedState.graph!.edges.count == 1)
+assert(appliedState.agent!.conversations[0].messages[0].appliedAt != nil)
+assert(try! agentRepo.load() == appliedState)
+expectFailure { try agentCoordinator.change { try AgentActions.commit(messageID:proposal.id,conversationID:conversation.id,in:&$0) } }
+expectFailure { try agentCoordinator.change { $0 = try AgentActions.applying([AgentOperation(action:"update_task",id:agentTask,title:"Should roll back"),AgentOperation(action:"create_edge",id:UUID(),from:agentNode,to:UUID())],to:$0) } }
+assert(agentCoordinator.state == appliedState)
+expectFailure { _ = try AgentActions.applying([AgentOperation(action:"execute_shell",id:UUID())],to:appliedState) }
+expectFailure { _ = try AgentActions.applying([AgentOperation(action:"create_task",id:UUID(),title:"Invalid",projectID:UUID())],to:appliedState) }
+let completedAgent=try AgentActions.applying([AgentOperation(action:"update_task",id:agentTask,status:"已完成")],to:appliedState)
+assert(completedAgent.tasks[0].completedAt != nil)
+let agentBackup=try JSONDecoder().decode(ResearchState.self,from:ResearchBackup.encode(appliedState))
+assert(try! ResearchBackup.merge(agentBackup,into:ResearchState()) == appliedState)
+assert(try! ResearchBackup.merge(ResearchState(),into:appliedState) == appliedState)
+assert(AgentReply.parse("ordinary answer").operations.isEmpty)
+assert(!((try! AgentActions.context(appliedState)).contains("Proposed plan")))
+print("PASS: Agent transaction rollback, references, allowlist, apply-once, status update, chat persistence and backup")

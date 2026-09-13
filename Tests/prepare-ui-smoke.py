@@ -278,6 +278,47 @@ tests = r'''
             try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/research-workspace.png"))
         }
         workspace?.window?.close()
+        let priorOffset = researchBoard!.canvas.offset
+        let scrollCG = CGEvent(scrollWheelEvent2Source:nil,units:.pixel,wheelCount:2,wheel1:12,wheel2:8,wheel3:0)!
+        let scrollEvent = NSEvent(cgEvent:scrollCG)!
+        researchBoard!.canvas.scrollWheel(with:scrollEvent)
+        precondition(researchBoard!.canvas.offset.x == priorOffset.x + scrollEvent.scrollingDeltaX)
+        precondition(researchBoard!.canvas.offset.y == priorOffset.y + scrollEvent.scrollingDeltaY)
+        showAgent(); let agent = agentWindow!
+        let agentID = UUID()
+        SmokeAgentProtocol.reply = "{\"reply\":\"建议创建一个实验任务，确认后将保存在任务列表。\",\"operations\":[{\"action\":\"create_task\",\"id\":\"" + agentID.uuidString + "\",\"title\":\"示例：准备实验与复盘\"}]}"
+        let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [SmokeAgentProtocol.self]
+        agent.transport = AgentTransport(config:config)
+        UserDefaults.standard.set("https://agent.invalid/v1/chat/completions",forKey:"agentEndpoint")
+        UserDefaults.standard.set("mock",forKey:"agentModel")
+        agent.input.string = "帮我整理实验任务，保留后续复盘记录。"
+        agent.send()
+        let timeout = Date().addingTimeInterval(5)
+        while agent.requestID != nil && Date() < timeout { RunLoop.current.run(until:Date().addingTimeInterval(0.02)) }
+        precondition(agent.current?.messages.last?.operations?.count == 1, agent.status.stringValue)
+        precondition(!research.state.tasks.contains { $0.id == agentID })
+        let confirm = Timer(timeInterval:0.2,repeats:false) { _ in NSApp.stopModal(withCode:.alertFirstButtonReturn) }
+        RunLoop.main.add(confirm,forMode:.modalPanel); agent.previewChanges()
+        precondition(research.state.tasks.contains { $0.id == agentID })
+        precondition(agent.current?.messages.last?.appliedAt != nil)
+        agent.input.string = "复盘：先验证一个实验，再决定是否扩展。"; agent.saveNote()
+        precondition(agent.current?.messages.last?.role == "note")
+        if let root = agent.window?.contentView, let bitmap = root.bitmapImageRepForCachingDisplay(in:root.bounds) {
+            root.layoutSubtreeIfNeeded(); root.cacheDisplay(in:root.bounds,to:bitmap)
+            try! bitmap.representation(using:.png,properties:[:])!.write(to:URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("docs/agent-studio.png"))
+        }
+        agent.window?.close(); agent.showWindow(nil)
+        precondition(agent.transcript.string.contains("复盘：先验证"))
+        SmokeAgentProtocol.statusCode = 500
+        agent.input.string = "模拟服务失败"; agent.send()
+        let failureTimeout = Date().addingTimeInterval(5)
+        while agent.requestID != nil && Date() < failureTimeout { RunLoop.current.run(until:Date().addingTimeInterval(0.02)) }
+        precondition(agent.current?.messages.last?.role == "note")
+        precondition(agent.status.stringValue.contains("500"))
+        SmokeAgentProtocol.hold = true; agent.input.string = "模拟取消"; agent.send(); agent.cancel()
+        precondition(agent.requestID == nil && agent.current?.messages.last?.text == "模拟取消")
+        agent.window?.close(); agent.transport.session.invalidateAndCancel()
+        print("PASS: Agent mocked HTTP chat, proposal preview/apply, saved notes, reopen, HTTP failure and cancellation")
         willSleep()
         precondition(countdown.isPaused && activityLog.active == nil)
         try! Data("passed".utf8).write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".build/ui-smoke-passed"))
@@ -299,9 +340,27 @@ a = app_source.index('            let folder = try FileManager.default.url(')
 b = app_source.index('            let store =', a)
 app_source = app_source[:a] + '            let folder = ' + source_path + '\n' + app_source[b:]
 (output / "AppDelegate.swift").write_text(app_source)
-entry = Path("Sources/main.swift").read_text().replace("app.run()", """DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+entry = Path("Sources/main.swift").read_text().replace("app.run()", """Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { _ in
     delegate.runUISmoke()
     app.terminate(nil)
 }
 app.run()""")
 (output / "main.swift").write_text(entry.replace("let app =", 'UserDefaults.standard.removePersistentDomain(forName: "local.tomato-glass.smoke")\nlet app ='))
+
+with (output / "AppDelegate.swift").open("a") as f:
+    f.write(r'''
+final class SmokeAgentProtocol: URLProtocol {
+    static var reply = ""
+    static var statusCode = 200
+    static var hold = false
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        if Self.hold { return }
+        let data = try! JSONSerialization.data(withJSONObject:["choices":[["message":["content":Self.reply]]]])
+        client?.urlProtocol(self,didReceive:HTTPURLResponse(url:request.url!,statusCode:Self.statusCode,httpVersion:nil,headerFields:nil)!,cacheStoragePolicy:.notAllowed)
+        client?.urlProtocol(self,didLoad:data); client?.urlProtocolDidFinishLoading(self)
+    }
+    override func stopLoading() {}
+}
+''')

@@ -72,6 +72,7 @@ struct SessionNote: Codable, Equatable {
 }
 
 struct ResearchState: Codable, Equatable {
+    var agent: AgentArchive?
     var schedule: ResearchSchedule?
     var graph: ResearchGraph?
     var version = 1
@@ -84,6 +85,7 @@ struct ResearchState: Codable, Equatable {
         func require(_ test: Bool, _ text: String) throws { if !test { throw ResearchError.message(text) } }
         try require(version == 1, "不支持的科研数据版本")
         let pids = Set(projects.map { $0.id }), tids = Set(tasks.map { $0.id })
+        try agent?.validate()
         try graph?.validate(projects: pids)
         try (schedule ?? ResearchSchedule()).validate(projects: pids, tasks: tasks)
         try require(pids.count == projects.count && tids.count == tasks.count && Set(sessions.map { $0.id }).count == sessions.count, "数据 ID 重复")

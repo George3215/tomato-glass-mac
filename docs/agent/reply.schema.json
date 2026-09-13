@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tomato Glass Agent Reply v1",
+  "type": "object",
+  "required": [
+    "reply",
+    "operations"
+  ],
+  "properties": {
+    "reply": {
+      "type": "string",
+      "maxLength": 200000
+    },
+    "operations": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "required": [
+          "action",
+          "id"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "create_project",
+              "create_task",
+              "update_task",
+              "create_node",
+              "update_node",
+              "create_edge"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "body": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "projectID": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "important": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "x": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "y": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "relation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "plannedDay": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "plannedDuration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 1440
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "enum": [
+                    "create_project",
+                    "create_task",
+                    "create_node"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "action": {
+                  "const": "create_edge"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "from",
+                "to"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

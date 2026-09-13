@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var research: FocusSessionCoordinator!
     var workspace: ResearchWorkspaceWindowController?
     var researchBoard: ResearchBoardController?
+    var agentWindow: AgentController?
     var scheduleWindow: ScheduleController?
     var projectPicker: NSPopUpButton?
     var researchTaskPicker: NSPopUpButton?
@@ -84,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("短休息 · 5 分钟", action: #selector(startPreset), tag: 5)
         add("长休息 · 15 分钟", action: #selector(startPreset), tag: 15)
         add("自定义倒计时…", action: #selector(showSettings))
+        add("Agent 对话与积累…", action: #selector(showAgent))
         add("日程与目标…", action: #selector(showSchedule))
         add("研究进程看板…", action: #selector(showResearchBoard))
         add("科研工作台…", action: #selector(showWorkspace))
@@ -129,6 +131,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    @objc func showAgent() {
+        if agentWindow == nil { agentWindow = AgentController(app: self) }
+        agentWindow?.reload(); agentWindow?.showWindow(nil)
+        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+    }
     @objc func showSchedule() {
         if scheduleWindow == nil { scheduleWindow = ScheduleController(app: self) }
         scheduleWindow?.reload(); scheduleWindow?.showWindow(nil)

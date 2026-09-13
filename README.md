@@ -6,9 +6,17 @@
 
 > 把今天的努力，存进一颗小番茄。✧
 
-轻量原生 **Mac 番茄钟与计时器**。让蝴蝶、水波和半透明玻璃陪你专注，也让每段投入都有记录。使用 Swift/AppKit，离线运行，无账号、无遥测、无 Electron。
+轻量原生 **Mac 番茄钟与计时器**。让蝴蝶、水波和半透明玻璃陪你专注，也让每段投入都有记录。使用 Swift/AppKit，离线运行，核心功能无需账号、无遥测、无 Electron；AI 服务由用户选择接入。
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
+
+## Agent Studio · 1.11
+
+与 AI 聊天并保存积累：支持 Chat Completions 兼容接口和外部 Agent JSON 导入。AI 提案可创建 / 修改任务、生成可编辑展板；先预览再应用，聊天、复盘笔记和操作时间进入完整备份。流程图滚动方向已反转，箭头采用加粗圆角 Lucide 样式。
+
+[接入与操作协议](docs/AGENT_API.md)
+
+![Agent Studio（模拟服务演示数据）](docs/agent-studio.png)
 
 ## 色块研究展板 · 1.10.3
 
@@ -73,7 +81,7 @@
 
 分类卡片展示所选日期，表格可切换「当日记录 / 任务累计」。暂停时间不计入任务；手动和 JSON 补记拒绝重叠、未来时间，整批校验后保存。
 
-未记录时段保留 [JSON 补记接口](docs/ACTIVITY_IMPORT.md)：导出空白时段，根据自己的实际活动让 AI 整理，再预览确认导入。软件不自动调用模型、不上传记录，也不监控应用或判断注意力。历史记录仅在本机保存，未记录的过去无法自动还原。
+未记录时段保留 [JSON 补记接口](docs/ACTIVITY_IMPORT.md)：导出空白时段，根据自己的实际活动让 AI 整理，再预览确认导入。补记不会自动联网；Agent Studio 仅在点击发送时调用你配置的模型，并按所选范围发送上下文。软件不监控应用或判断注意力。历史记录仅在本机保存，未记录的过去无法自动还原。
 
 ## 🛠️ 轻装运行与构建
 
