@@ -131,3 +131,34 @@ assert(try! repository.load().graph == deleted)
 try crash.change { $0.graph = graph }
 assert(try! repository.load().graph == graph)
 print("PASS: graph persistence, legacy backup compatibility, edge validation, node deletion and restoration")
+
+let planningStore = try SQLiteResearchStore(url: folder.appendingPathComponent("planning.sqlite"))
+let planning = FocusSessionCoordinator(state: ResearchState(), repository: planningStore)
+let topic = ResearchProject(title: "Long research topic")
+let monthGoal = ResearchSchedule.Goal(projectID: topic.id, kind: "month", period: "2026-09-01", title: "Monthly baseline")
+let weekGoal = ResearchSchedule.Goal(projectID: topic.id, parentID: monthGoal.id, kind: "week", period: "2026-08-31", title: "Week across month boundary")
+var daily = ResearchTask(title: "Detailed Todo", projectID: topic.id)
+daily.planningGoalID = weekGoal.id; daily.plannedDay = "2026-09-02"; daily.plannedMinutes = 14*60+30; daily.plannedDuration = 90; daily.schedule = "指定日期"; daily.scheduledDate = PlanDates.date("2026-09-02")
+try planning.change { s in s.projects=[topic]; s.schedule=ResearchSchedule(goals:[monthGoal,weekGoal]); s.tasks=[daily] }
+assert(try! planningStore.load() == planning.state)
+assert(PlanDates.week(PlanDates.date("2026-09-06")!) == "2026-08-31")
+assert(PlanDates.week(PlanDates.date("2026-09-07")!) == "2026-09-07")
+assert(PlanDates.date("2026-02-30") == nil)
+assert(PlanDates.week(PlanDates.date("2027-01-01")!) == "2026-12-28")
+assert(PlanDates.taskDay(daily) == "2026-09-02" && PlanDates.time(daily) == "14:30")
+assert(planning.state.schedule!.taskIDs(for:monthGoal,tasks:planning.state.tasks) == Set([daily.id]))
+let goodPlan = planning.state
+expectFailure { try planning.change { $0.tasks[0].plannedDay="2026-09-08" } }
+assert(planning.state == goodPlan)
+expectFailure { try planning.change { $0.schedule!.goals[1].parentID=UUID() } }
+expectFailure { try planning.change { $0.tasks[0].projectID=nil } }
+try planning.completeTask(daily.id,at:Date())
+assert(planning.state.tasks[0].completedAt != nil && !planning.state.schedule!.goals[0].done)
+let restoredPlan = try JSONDecoder().decode(ResearchState.self,from:ResearchBackup.encode(planning.state))
+assert(try! ResearchBackup.merge(restoredPlan,into:ResearchState()) == planning.state)
+var conflictPlan=restoredPlan; conflictPlan.schedule!.goals[0].title="conflict"
+expectFailure { _ = try ResearchBackup.merge(conflictPlan,into:restoredPlan) }
+var v19 = try JSONSerialization.jsonObject(with:ResearchBackup.encode(ResearchState())) as! [String:Any]
+v19.removeValue(forKey:"schedule")
+assert(try! JSONDecoder().decode(ResearchState.self,from:JSONSerialization.data(withJSONObject:v19)).schedule == nil)
+print("PASS: monthly/weekly/daily hierarchy, Monday weeks, cross-month/year, goal references, completion, schedule backup and v1.9 compatibility")

@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDataSource, NSTableViewDelegate {
     unowned let app: AppDelegate
-    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置", "研究看板"], trackingMode: .selectOne, target: nil, action: nil)
+    let navigation = NSSegmentedControl(labels: ["概览", "任务 Tasks", "项目 Projects", "专注 Focus", "Session 记录", "设置", "研究看板", "日程目标"], trackingMode: .selectOne, target: nil, action: nil)
     let search = NSSearchField()
     let filter = NSPopUpButton()
     let table = NSTableView()
@@ -64,6 +64,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         filter.selectItem(at: 0); search.stringValue = ""; reload()
         if navigation.selectedSegment == 3 { app.showSettings() }
         if navigation.selectedSegment == 6 { app.showResearchBoard() }
+        if navigation.selectedSegment == 7 { app.showSchedule() }
     }
     @objc func filterChanged() { reload() }
     func numberOfRows(in tableView: NSTableView) -> Int { rowValues.count }
@@ -124,13 +125,15 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         if page == 5 {
             create.isEnabled = true; create.title = "导出完整备份"
             edit.isEnabled = true; edit.title = "导入备份（合并）"
-            detail.string = "设置与数据\n\n字体、背景、透明度和提示音：在 Focus 窗口的「我的空间」设置。\n科研数据：本机 Application Support 下 research.sqlite。旧版原始数据保留于 legacy-v1-backup.json。\n完整备份导出项目、任务、Session、短记与研究看板；导入按 ID 合并，相同 ID 内容冲突会拒绝，避免覆盖当前记录。导入前自动保存本机备份。\n当前仍离线运行；研究看板可由顶部或菜单栏打开。习惯、日志与 AI 分析将在后续阶段加入。"
+            detail.string = "设置与数据\n\n字体、背景、透明度和提示音：在 Focus 窗口的「我的空间」设置。\n科研数据：本机 Application Support 下 research.sqlite。旧版原始数据保留于 legacy-v1-backup.json。\n完整备份导出项目、任务、Session、短记、研究看板与月/周目标；导入按 ID 合并，相同 ID 内容冲突会拒绝，避免覆盖当前记录。导入前自动保存本机备份。\n当前仍离线运行；研究看板可由顶部或菜单栏打开。习惯、日志与 AI 分析将在后续阶段加入。"
             return
         }
         create.title = "新建"; edit.title = "编辑 / 短记"
         if let p = state.projects.first(where: { $0.id == id }), page == 2 {
             let seconds = state.sessions.filter { $0.projectID == p.id && $0.category != "休息" }.reduce(0) { $0 + $1.seconds(at: Date()) }
             detail.string = "\(p.title) · \(p.stage) · \(p.progress)\n目标：\(p.goal)\n下一步：\(p.nextAction)\n累计投入：\(ActivityLog.duration(seconds))\n\n里程碑\n" + p.milestones.map { "\($0.done ? "☑" : "☐") \($0.title)" }.joined(separator: "\n") + "\n\n本周目标\n" + p.weeklyObjectives.filter { Calendar.current.isDate($0.weekStart, equalTo: Date(), toGranularity: .weekOfYear) }.map { "\($0.done ? "☑" : "☐") \($0.title)" }.joined(separator: "\n")
+            let planned = (state.schedule?.goals ?? []).filter { $0.projectID == p.id && $0.kind == "week" && $0.period == PlanDates.week(Date()) }
+            if !planned.isEmpty { detail.string += "\n\n日程周目标\n" + planned.map { "\($0.done ? "☑" : "☐") \($0.title)" }.joined(separator:"\n") }
         } else if let t = state.tasks.first(where: { $0.id == id }), page == 0 || page == 1 {
             let seconds = state.sessions.filter { $0.taskID == t.id }.reduce(0) { $0 + $1.seconds(at: Date()) }
             detail.string = "\(t.title)\n\(projectName(t.projectID)) · \(t.status) · \(t.priority)\n安排：\(t.schedule) \(t.scheduledDate.map(stamp) ?? "")\n截止：\(t.dueDate.map(stamp) ?? "未设置")\n累计：\(ActivityLog.duration(seconds))\n\n\(t.description)\n\nID：\(t.id.uuidString)"
@@ -269,6 +272,10 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         case "指定日期": task.scheduledDate = scheduled.dateValue
         default: task.scheduledDate = nil
         }
+        if existing?.plannedDay != nil {
+            task.plannedDay = task.scheduledDate.map { PlanDates.key($0) }
+            if task.plannedDay == nil { task.planningGoalID = nil; task.plannedMinutes = nil }
+        }
         task.dueDate = hasDue.state == .on ? due.dateValue : nil
         task.completedAt = task.status == "已完成" ? (task.completedAt ?? Date()) : nil; task.updatedAt = Date()
         _ = app.researchAction {
@@ -302,7 +309,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             let imported = try JSONDecoder().decode(ResearchState.self, from: Data(contentsOf: url))
             let merged = try ResearchBackup.merge(imported, into: state)
             let alert = NSAlert(); alert.messageText = "确认合并科研备份？"
-            alert.informativeText = "导入文件包含 \(imported.projects.count) 个项目、\(imported.tasks.count) 个任务、\(imported.sessions.count) 个 Session、\(imported.graph?.nodes.count ?? 0) 个研究节点。相同内容不会重复导入。"
+            alert.informativeText = "导入文件包含 \(imported.projects.count) 个项目、\(imported.tasks.count) 个任务、\(imported.sessions.count) 个 Session、\(imported.graph?.nodes.count ?? 0) 个研究节点、\(imported.schedule?.goals.count ?? 0) 个日程目标。相同内容不会重复导入。"
             alert.addButton(withTitle: "合并"); alert.addButton(withTitle: "取消")
             guard alert.runModal() == .alertFirstButtonReturn else { return }
             // Revalidate against current state after the modal loop (the timer may have advanced).

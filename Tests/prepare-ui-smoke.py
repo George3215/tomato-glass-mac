@@ -22,7 +22,7 @@ tests = r'''
         precondition(workspace!.rowIDs.contains(demoProject.id))
         workspace!.navigation.selectedSegment = 1; workspace!.reload()
         precondition(workspace!.rowIDs.contains(demoTask.id))
-        func acceptNewForm(_ title: String, capture: Bool = false) {
+        func acceptNewForm(_ title: String, capture: Bool = false, configure: ((NSView) -> Void)? = nil) {
             let timer = Timer(timeInterval: 0.25, repeats: false) { _ in
                 guard let root = NSApp.modalWindow?.contentView else { fatalError("Missing edit form") }
                 func fields(_ view: NSView) -> [NSTextField] {
@@ -31,6 +31,7 @@ tests = r'''
                 let editable = fields(root).filter { $0.isEditable }
                 precondition(!editable.isEmpty, "Form fields missing")
                 editable[0].stringValue = title
+                configure?(root)
                 if capture, let bitmap = root.bitmapImageRepForCachingDisplay(in: root.bounds) {
                     root.layoutSubtreeIfNeeded(); root.cacheDisplay(in: root.bounds, to: bitmap)
                     try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent(".build/research-project-editor.png"))
@@ -208,6 +209,59 @@ tests = r'''
             try! bitmap.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("docs/research-board.png"))
         }
         board.window?.close()
+        showSchedule()
+        let planner = scheduleWindow!
+        planner.date.dateValue = PlanDates.date("2026-09-16")!
+        planner.selectedDay="2026-09-16"
+        let monthly = ResearchSchedule.Goal(projectID: demoProject.id, kind: "month", period: "2026-09-01", title: "示例：完成课题基线")
+        let weekly = ResearchSchedule.Goal(projectID: demoProject.id, parentID: monthly.id, kind: "week", period: "2026-09-14", title: "示例：验证实验方案")
+        try! research.change { s in
+            s.schedule = ResearchSchedule(goals:[monthly,weekly])
+            for i in 0..<5 {
+                var t = ResearchTask(title:["阅读与整理问题","准备实验数据","运行对照实验","分析结果","整理本周结论"][i], projectID:demoProject.id)
+                t.planningGoalID=weekly.id; t.plannedDay="2026-09-\(14+i)"; t.plannedMinutes=14*60; t.plannedDuration=60; t.description="示例执行步骤与验收标准"
+                t.scheduledDate=PlanDates.date(t.plannedDay!); t.schedule="指定日期"; s.tasks.append(t)
+            }
+        }
+        planner.reload()
+        func plannerShot(_ filename:String) {
+            guard let root=planner.window?.contentView, let bitmap=root.bitmapImageRepForCachingDisplay(in:root.bounds) else { fatalError("Missing planner") }
+            root.layoutSubtreeIfNeeded(); root.cacheDisplay(in:root.bounds,to:bitmap)
+            try! bitmap.representation(using:.png,properties:[:])!.write(to:URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent(filename))
+        }
+        plannerShot("docs/schedule-week.png")
+        precondition(planner.calendar.cells.count == 7 && planner.calendar.hits.count == 5)
+        let firstTodo = research.state.tasks.first{$0.planningGoalID == weekly.id}!
+        let checkbox = planner.calendar.hits.first{$0.2 == firstTodo.id}!.1
+        let clickPoint = planner.calendar.convert(NSPoint(x:checkbox.midX,y:checkbox.midY),to:nil)
+        let clickEvent = NSEvent.mouseEvent(with:.leftMouseDown,location:clickPoint,modifierFlags:[],timestamp:0,windowNumber:planner.window!.windowNumber,context:nil,eventNumber:0,clickCount:1,pressure:1)!
+        planner.calendar.mouseDown(with:clickEvent)
+        precondition(research.state.tasks.first{$0.id == firstTodo.id}!.completedAt != nil)
+        planner.modes.selectedSegment=1; planner.reload(); plannerShot("docs/schedule-month.png")
+        precondition(planner.calendar.cells.count == 35 && planner.calendar.hits.count == 5)
+        planner.expandAll()
+        let expandedCount=planner.outline.numberOfRows
+        planner.collapseAll(); precondition(planner.outline.numberOfRows < expandedCount)
+        planner.reload(); precondition(planner.outline.numberOfRows == planner.roots.count)
+        planner.expandAll(); plannerShot("docs/schedule-outline.png")
+        planner.selectedGoalID=nil; planner.selectedDay="2026-09-16"
+        acceptNewForm("表单测试日程"); planner.addTodo()
+        precondition(research.state.tasks.contains{$0.title == "表单测试日程" && $0.plannedDay == "2026-09-16"})
+        acceptNewForm("表单测试月目标", configure: { root in
+            func fields(_ v:NSView) -> [NSTextField] { (v as? NSTextField).map{[$0]} ?? v.subviews.flatMap(fields) }
+            fields(root).first{$0.isEditable && $0.stringValue == "1"}!.stringValue="3"
+        }); planner.addMonth()
+        precondition(research.state.schedule!.goals.filter{$0.title == "表单测试月目标"}.count == 3)
+        planner.selectedGoalID=monthly.id
+        acceptNewForm("表单测试周目标"); planner.addWeek()
+        precondition(research.state.schedule!.goals.contains{$0.title == "表单测试周目标" && $0.parentID == monthly.id})
+        planner.collapseAll()
+        let reopenedPlanner = ScheduleController(app:self)
+        reopenedPlanner.modes.selectedSegment=2; reopenedPlanner.reload()
+        precondition(reopenedPlanner.outline.numberOfRows == reopenedPlanner.roots.count)
+        reopenedPlanner.window?.close()
+        planner.window?.close()
+        print("PASS: planner calendar week/month, Todo completion, folding persistence and editor saves")
         print("PASS: research board node form, dragging, filter, connected deletion and undo")
         showWorkspace(); workspace!.navigation.selectedSegment = 4; workspace!.reload()
         precondition(!workspace!.rowIDs.isEmpty)

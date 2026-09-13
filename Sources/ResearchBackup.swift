@@ -34,6 +34,11 @@ enum ResearchBackup {
             try append(graph.edges, to: &merged.edges)
             result.graph = merged
         }
+        if let schedule = incoming.schedule {
+            var merged = result.schedule ?? ResearchSchedule()
+            try append(schedule.goals, to: &merged.goals)
+            result.schedule = merged
+        }
         try result.validate()
         let records = result.activityLog(at: Date()).entries.sorted { $0.start < $1.start }
         for i in records.indices.dropFirst() where records[i].start < records[i - 1].end {

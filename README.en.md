@@ -10,6 +10,14 @@ A lightweight native **Mac Pomodoro and countdown timer**. Butterfly wallpaper, 
 
 **[↓ Download for macOS](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [Releases](https://github.com/George3215/tomato-glass-mac/releases) · [Discovery index](llms.txt)
 
+## 🗓️ Research Planner · 1.10
+
+A Klein-blue gradient planner connects **Projects → Monthly Goals → Weekly Goals → Daily Todos**. Weekly/monthly calendars, consecutive-month planning, detailed daily execution, synchronized checkboxes and a collapsible outline keep long plans manageable.
+
+[Planner guide](docs/SCHEDULE.md)
+
+![Weekly planner, demonstration data](docs/schedule-week.png)
+
 ## 🧩 Editable research board · 1.9
 
 A separate 2D canvas for questions, viewpoints, experiments and other research nodes. Drag nodes, mark important ideas, edit directed connections, pan/zoom, filter and undo. Saved locally and included in backups.

@@ -10,6 +10,14 @@
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
 
+## 🗓️ 日程与目标 · 1.10
+
+克莱因蓝渐变面板，按 **课题 → 月目标 → 周目标 → 每日 Todo** 安排研究。提供周日程、月日程、长周期可折叠大纲；支持连续月目标、详细日计划、Todo 勾选和关联专注。
+
+[日程操作说明](docs/SCHEDULE.md)
+
+![周日程，使用演示数据](docs/schedule-week.png)
+
 ## 🧩 可编辑研究进程看板 · 1.9
 
 独立二维画布，用节点标记**重要问题、观点、实验**等。支持拖动、重点星标、状态、方向连线、缩放平移、搜索筛选和撤销；布局自动保存，完整备份包含看板数据。

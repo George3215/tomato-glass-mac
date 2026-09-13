@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var research: FocusSessionCoordinator!
     var workspace: ResearchWorkspaceWindowController?
     var researchBoard: ResearchBoardController?
+    var scheduleWindow: ScheduleController?
     var projectPicker: NSPopUpButton?
     var researchTaskPicker: NSPopUpButton?
     var workTypePicker: NSPopUpButton?
@@ -83,6 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add("短休息 · 5 分钟", action: #selector(startPreset), tag: 5)
         add("长休息 · 15 分钟", action: #selector(startPreset), tag: 15)
         add("自定义倒计时…", action: #selector(showSettings))
+        add("日程与目标…", action: #selector(showSchedule))
         add("研究进程看板…", action: #selector(showResearchBoard))
         add("科研工作台…", action: #selector(showWorkspace))
         add("时间统计与补记…", action: #selector(showStatistics))
@@ -119,11 +121,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             countdown = research.current?.countdown ?? Countdown(duration: countdown.duration)
             storageFailed = false
             workspace?.reload()
+            scheduleWindow?.reload()
             return true
         } catch {
             NSApp.presentError(error)
             return false
         }
+    }
+
+    @objc func showSchedule() {
+        if scheduleWindow == nil { scheduleWindow = ScheduleController(app: self) }
+        scheduleWindow?.reload(); scheduleWindow?.showWindow(nil)
+        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc func showResearchBoard() {
@@ -260,7 +269,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         let closing = notification.object as? NSWindow
-        if ![settings, workspace?.window, researchBoard?.window, statisticsWindow].compactMap({ $0 }).contains(where: { $0 !== closing && $0.isVisible }) {
+        if ![settings, workspace?.window, researchBoard?.window, scheduleWindow?.window, statisticsWindow].compactMap({ $0 }).contains(where: { $0 !== closing && $0.isVisible }) {
             NSApp.setActivationPolicy(.accessory)
         }
     }

@@ -65,6 +65,9 @@ final class SQLiteResearchStore: ResearchRepository {
             if let raw = try rows("SELECT value FROM metadata WHERE key='researchGraph'").first?.first {
                 state.graph = try decoder.decode(ResearchGraph.self, from: Data(raw.utf8))
             }
+            if let raw = try rows("SELECT value FROM metadata WHERE key='researchSchedule'").first?.first {
+                state.schedule = try decoder.decode(ResearchSchedule.self, from: Data(raw.utf8))
+            }
             try state.validate()
             saved = state
             return state
@@ -95,6 +98,9 @@ final class SQLiteResearchStore: ResearchRepository {
                 }
                 for s in state.sessions where oldSessions[s.id] != s {
                     try execute("INSERT INTO sessions VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id, task_id=excluded.task_id, data=excluded.data WHERE data != excluded.data", [s.id.uuidString, s.projectID?.uuidString, s.taskID?.uuidString, try json(s)])
+                }
+                if state.schedule != saved.schedule {
+                    try execute("INSERT OR REPLACE INTO metadata VALUES ('researchSchedule', ?)", [try json(state.schedule ?? ResearchSchedule())])
                 }
                 if state.graph != saved.graph {
                     try execute("INSERT OR REPLACE INTO metadata VALUES ('researchGraph', ?)", [try json(state.graph ?? ResearchGraph())])

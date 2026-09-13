@@ -23,6 +23,10 @@ struct ResearchTask: Codable, Equatable, Identifiable {
     var projectID: UUID?
     var status = "待办"
     var priority = "普通"
+    var planningGoalID: UUID?
+    var plannedDay: String?
+    var plannedMinutes: Int?
+    var plannedDuration: Int?
     var schedule = "Inbox"
     var timeZoneID = TimeZone.current.identifier
     var scheduledDate: Date?
@@ -68,6 +72,7 @@ struct SessionNote: Codable, Equatable {
 }
 
 struct ResearchState: Codable, Equatable {
+    var schedule: ResearchSchedule?
     var graph: ResearchGraph?
     var version = 1
     var projects: [ResearchProject] = []
@@ -80,6 +85,7 @@ struct ResearchState: Codable, Equatable {
         try require(version == 1, "不支持的科研数据版本")
         let pids = Set(projects.map { $0.id }), tids = Set(tasks.map { $0.id })
         try graph?.validate(projects: pids)
+        try (schedule ?? ResearchSchedule()).validate(projects: pids, tasks: tasks)
         try require(pids.count == projects.count && tids.count == tasks.count && Set(sessions.map { $0.id }).count == sessions.count, "数据 ID 重复")
         try require(sessions.filter { $0.isOpen }.count <= 1, "只能有一个未结束的 Session")
         for p in projects { try require(!p.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && p.title.count <= 300, "项目名需为 1–300 字") }
