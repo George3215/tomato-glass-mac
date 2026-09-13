@@ -10,6 +10,10 @@
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
 
+## 🌃 星空磨砂玻璃 · 1.10.1
+
+科研工作台、日程、研究看板、时间记录与编辑弹窗统一采用紫色、蓝色、深蓝色渐变。原生磨砂面板搭配半透明卡片，静态星点无需后台动画；保留 Comic Sans MS 字体与原有蝴蝶动态壁纸。
+
 ## 🗓️ 日程与目标 · 1.10
 
 克莱因蓝渐变面板，按 **课题 → 月目标 → 周目标 → 每日 Todo** 安排研究。提供周日程、月日程、长周期可折叠大纲；支持连续月目标、详细日计划、Todo 勾选和关联专注。

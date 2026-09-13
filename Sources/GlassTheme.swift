@@ -78,8 +78,8 @@ final class DreamBackground: NSView {
             bounds.fill()
         } else {
         NSGradient(colors: [NSColor(srgbRed: 0.13, green: 0.12, blue: 0.29, alpha: 1),
-                            NSColor(srgbRed: 0.46, green: 0.29, blue: 0.59, alpha: 1),
-                            NSColor(srgbRed: 0.80, green: 0.47, blue: 0.65, alpha: 1)])!.draw(in: bounds, angle: 30)
+                            NSColor(srgbRed: 0.06, green: 0.16, blue: 0.43, alpha: 1),
+                            NSColor(srgbRed: 0.27, green: 0.14, blue: 0.44, alpha: 1)])!.draw(in: bounds, angle: 30)
             for i in 0..<8 {
                 let x = CGFloat(i) * bounds.width / 6 - 150
                 let oval = NSBezierPath(ovalIn: NSRect(x: x, y: sin(Double(i)) * 170 - 160, width: 580, height: 600))
@@ -147,4 +147,75 @@ func glassButton(_ title: String, target: AnyObject, action: Selector) -> NSButt
     let button = NSButton(title: title, target: target, action: action)
     button.bezelStyle = .rounded
     return button
+}
+
+
+/// Shared, static night-sky backdrop. No timer or additional image buffers.
+class StarfieldSurface: NSView {
+    override func draw(_ dirtyRect: NSRect) { StarGlass.drawSky(in: bounds) }
+}
+
+enum StarGlass {
+    static let panel = NSColor(srgbRed: 0.13, green: 0.16, blue: 0.36, alpha: 0.78)
+    static let accent = NSColor(srgbRed: 0.66, green: 0.76, blue: 1, alpha: 1)
+    static func drawSky(in rect: NSRect) {
+        NSGradient(colors: [NSColor(srgbRed: 0.035, green: 0.055, blue: 0.16, alpha: 1),
+                            NSColor(srgbRed: 0.06, green: 0.16, blue: 0.43, alpha: 1),
+                            NSColor(srgbRed: 0.27, green: 0.14, blue: 0.44, alpha: 1)])!.draw(in: rect, angle: 28)
+        for i in 0..<65 {
+            let x = rect.minX + CGFloat((i * 173 + 31) % 997) / 997 * rect.width
+            let y = rect.minY + CGFloat((i * 283 + 73) % 991) / 991 * rect.height
+            NSColor.white.withAlphaComponent(i % 4 == 0 ? 0.30 : 0.12).setFill()
+            let size: CGFloat = i % 5 == 0 ? 2 : 1
+            NSBezierPath(ovalIn: NSRect(x: x, y: y, width: size, height: size)).fill()
+        }
+    }
+    static func frost(_ view: NSView) {
+        guard !view.subviews.contains(where: { $0.identifier?.rawValue == "star-glass-effect" }) else { return }
+        view.wantsLayer = true
+        view.layer?.backgroundColor = panel.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 1 : 0.40).cgColor
+        view.layer?.cornerRadius = 12
+        view.layer?.masksToBounds = true
+        view.layer?.borderWidth = 1
+        view.layer?.borderColor = accent.withAlphaComponent(0.22).cgColor
+        let effect = NSVisualEffectView(frame: view.bounds)
+        effect.identifier = .init("star-glass-effect")
+        effect.autoresizingMask = [.width, .height]
+        effect.material = .hudWindow; effect.blendingMode = .withinWindow; effect.state = .active
+        effect.wantsLayer = true
+        effect.layer?.backgroundColor = panel.withAlphaComponent(NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency ? 1 : 0.40).cgColor
+        view.addSubview(effect, positioned: .below, relativeTo: nil)
+    }
+    static func apply(to view: NSView) {
+        if let scroll = view as? NSScrollView {
+            scroll.drawsBackground = false; scroll.contentView.drawsBackground = false
+            frost(scroll)
+        }
+        if let table = view as? NSTableView {
+            table.backgroundColor = .clear
+            table.usesAlternatingRowBackgroundColors = false
+        }
+        if let field = view as? NSTextField, field.isEditable {
+            field.backgroundColor = panel; field.textColor = .labelColor
+        }
+        if let text = view as? NSTextView {
+            text.drawsBackground = false; text.textColor = .labelColor
+            text.insertionPointColor = .white
+        }
+        for child in view.subviews where !(child is NSVisualEffectView) { apply(to: child) }
+    }
+}
+
+extension NSAlert {
+    @discardableResult func runGlassModal() -> NSApplication.ModalResponse {
+        window.appearance = NSAppearance(named: .darkAqua)
+        if let accessoryView { StarGlass.apply(to: accessoryView) }
+        if let root = window.contentView {
+            let sky = StarfieldSurface(frame: root.bounds)
+            sky.autoresizingMask = [.width, .height]
+            root.addSubview(sky, positioned: .below, relativeTo: nil)
+            StarGlass.apply(to: root)
+        }
+        return runModal()
+    }
 }

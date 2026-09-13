@@ -18,7 +18,7 @@ final class ResearchBoardController: NSWindowController {
         self.app = app
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1160, height: 760), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "🦋 研究进程看板 · Research Map"; window.minSize = NSSize(width: 1000, height: 650)
-        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: .aqua)
+        window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: .darkAqua)
         super.init(window: window)
         canvas.controller = self
         func button(_ title: String, _ action: Selector) -> NSButton { let b = NSButton(title: title, target: self, action: action); b.bezelStyle = .rounded; return b }
@@ -44,7 +44,7 @@ final class ResearchBoardController: NSWindowController {
             canvas.widthAnchor.constraint(equalTo: layout.widthAnchor), canvas.heightAnchor.constraint(greaterThanOrEqualToConstant: 420),
             hint.widthAnchor.constraint(equalTo: layout.widthAnchor), hint.heightAnchor.constraint(equalToConstant: 38)
         ])
-        AppFont.apply(to: root); window.center(); reload()
+        AppFont.apply(to: root); StarGlass.apply(to: root); window.center(); reload()
     }
     required init?(coder: NSCoder) { fatalError() }
     func reload() {
@@ -109,7 +109,7 @@ final class ResearchBoardController: NSWindowController {
             let alert = NSAlert(); alert.messageText = "连接关系"
             let picker = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 240, height: 30)); picker.addItems(withTitles: ResearchGraph.relations); picker.selectItem(withTitle: edge.relation)
             alert.accessoryView = picker; alert.addButton(withTitle: "保存"); alert.addButton(withTitle: "取消")
-            if alert.runModal() == .alertFirstButtonReturn { commit { g in if let i = g.edges.firstIndex(where: { $0.id == edge.id }) { g.edges[i].relation = picker.titleOfSelectedItem! } } }
+            if alert.runGlassModal() == .alertFirstButtonReturn { commit { g in if let i = g.edges.firstIndex(where: { $0.id == edge.id }) { g.edges[i].relation = picker.titleOfSelectedItem! } } }
         }
     }
     func editNode(_ existing: ResearchGraph.Node?, at point: NSPoint) {
@@ -133,7 +133,7 @@ final class ResearchBoardController: NSWindowController {
         stack.frame = NSRect(x: 0, y: 0, width: 480, height: 330)
         let alert = NSAlert(); alert.messageText = existing == nil ? "新建研究节点" : "编辑研究节点"
         alert.accessoryView = stack; alert.addButton(withTitle: "保存"); alert.addButton(withTitle: "取消")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard alert.runGlassModal() == .alertFirstButtonReturn else { return }
         node.title = title.stringValue.trimmingCharacters(in: .whitespacesAndNewlines); node.body = text.string
         node.kind = type.titleOfSelectedItem!; node.status = state.titleOfSelectedItem!; node.important = star.state == .on
         node.projectID = (projects.selectedItem?.representedObject as? String).flatMap(UUID.init(uuidString:)); node.updatedAt = Date()
@@ -157,9 +157,7 @@ final class ResearchBoardController: NSWindowController {
     @objc func fit() { canvas.fit() }
 }
 
-private final class BoardSurface: NSView {
-    override func draw(_ dirtyRect: NSRect) { NSColor.windowBackgroundColor.setFill(); bounds.fill() }
-}
+private final class BoardSurface: StarfieldSurface {}
 
 final class ResearchCanvas: NSView {
     weak var controller: ResearchBoardController?
@@ -179,7 +177,7 @@ final class ResearchCanvas: NSView {
     func screen(_ p: NSPoint) -> NSPoint { NSPoint(x: p.x * scale + offset.x, y: p.y * scale + offset.y) }
     func rect(_ n: ResearchGraph.Node) -> NSRect { NSRect(x: n.x, y: n.y, width: 240, height: 138) }
     func color(_ kind: String) -> NSColor {
-        switch kind { case "问题": return .systemPurple; case "观点", "Idea": return .systemOrange; case "实验": return .systemBlue; case "结果": return .systemGreen; case "失败": return .systemRed; default: return .systemTeal }
+        switch kind { case "问题": return NSColor(srgbRed: 0.78, green: 0.61, blue: 1, alpha: 1); case "观点", "Idea": return .systemOrange; case "实验": return StarGlass.accent; case "结果": return .systemGreen; case "失败": return .systemRed; default: return .systemTeal }
     }
     private func label(_ text: String, in rect: NSRect, size: CGFloat, color: NSColor, bold: Bool = false) {
         let style = NSMutableParagraphStyle(); style.lineBreakMode = .byTruncatingTail
@@ -194,11 +192,11 @@ final class ResearchCanvas: NSView {
         return (NSPoint(x: ac.x + dx * t, y: ac.y + dy * t), NSPoint(x: bc.x - dx * t, y: bc.y - dy * t))
     }
     override func draw(_ dirtyRect: NSRect) {
-        NSColor(srgbRed: 0.955, green: 0.964, blue: 0.985, alpha: 1).setFill(); bounds.fill()
+        StarGlass.panel.withAlphaComponent(0.25).setFill(); bounds.fill()
         NSGraphicsContext.saveGraphicsState()
         let transform = NSAffineTransform(); transform.translateX(by: offset.x, yBy: offset.y); transform.scale(by: scale); transform.concat()
         let tl = world(.zero), br = world(NSPoint(x: bounds.maxX, y: bounds.maxY))
-        NSColor.systemPurple.withAlphaComponent(0.12).setFill()
+        StarGlass.accent.withAlphaComponent(0.20).setFill()
         let spacing: CGFloat = scale < 0.5 ? 80 : 32
         for x in stride(from: floor(tl.x / spacing) * spacing, through: br.x, by: spacing) {
             for y in stride(from: floor(tl.y / spacing) * spacing, through: br.y, by: spacing) { NSBezierPath(ovalIn: NSRect(x: x, y: y, width: 2, height: 2)).fill() }
@@ -212,12 +210,12 @@ final class ResearchCanvas: NSView {
             arrow.line(to: NSPoint(x: b.x - 12*cos(angle-0.45), y: b.y - 12*sin(angle-0.45)))
             arrow.line(to: NSPoint(x: b.x - 12*cos(angle+0.45), y: b.y - 12*sin(angle+0.45))); arrow.close(); ink.setFill(); arrow.fill()
             let r = NSRect(x: (a.x+b.x)/2 - 28, y: (a.y+b.y)/2 - 10, width: 64, height: 21)
-            NSColor.windowBackgroundColor.setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill()
+            StarGlass.panel.setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill()
             label(e.relation, in: r.insetBy(dx: 5, dy: 2), size: 11, color: ink)
         }
         for n in graph.nodes where visibleIDs.contains(n.id) {
             let r = rect(n), ink = color(n.kind)
-            NSColor.white.setFill(); let path = NSBezierPath(roundedRect: r, xRadius: 14, yRadius: 14); path.fill()
+            StarGlass.panel.setFill(); let path = NSBezierPath(roundedRect: r, xRadius: 14, yRadius: 14); path.fill()
             (n.id == selectedNode || n.id == linkSource ? ink : ink.withAlphaComponent(0.25)).setStroke()
             path.lineWidth = n.id == selectedNode || n.id == linkSource ? 3 : 1; path.stroke()
             label(n.kind + (n.important ? "  ★ 重点" : ""), in: NSRect(x: r.minX+14, y: r.minY+12, width: 210, height: 18), size: 12, color: ink, bold: true)

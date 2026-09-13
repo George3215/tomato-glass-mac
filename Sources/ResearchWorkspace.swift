@@ -25,7 +25,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         window.title = "🍅 Research Workspace · 科研工作台"
         window.minSize = NSSize(width: 1100, height: 600)
         window.isReleasedWhenClosed = false
-        window.appearance = NSAppearance(named: .aqua)
+        window.appearance = NSAppearance(named: .darkAqua)
         super.init(window: window)
         navigation.selectedSegment = 0; navigation.target = self; navigation.action = #selector(pageChanged)
         search.placeholderString = "搜索名称 / 短记"
@@ -56,7 +56,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             scroll.widthAnchor.constraint(equalTo: layout.widthAnchor), scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 200),
             details.widthAnchor.constraint(equalTo: layout.widthAnchor), details.heightAnchor.constraint(equalToConstant: 225)
         ])
-        AppFont.apply(to: root)
+        AppFont.apply(to: root); StarGlass.apply(to: root)
         window.center(); reload()
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -214,7 +214,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
         content.layoutSubtreeIfNeeded(); content.setFrameSize(content.fittingSize)
         scroll.documentView?.scroll(.zero)
         AppFont.apply(to: stack); alert.accessoryView = scroll
-        return alert.runModal() == .alertFirstButtonReturn
+        return alert.runGlassModal() == .alertFirstButtonReturn
     }
     private func editProject(_ existing: ResearchProject?) {
         var project = existing ?? ResearchProject(title: "")
@@ -311,7 +311,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
             let alert = NSAlert(); alert.messageText = "确认合并科研备份？"
             alert.informativeText = "导入文件包含 \(imported.projects.count) 个项目、\(imported.tasks.count) 个任务、\(imported.sessions.count) 个 Session、\(imported.graph?.nodes.count ?? 0) 个研究节点、\(imported.schedule?.goals.count ?? 0) 个日程目标。相同内容不会重复导入。"
             alert.addButton(withTitle: "合并"); alert.addButton(withTitle: "取消")
-            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            guard alert.runGlassModal() == .alertFirstButtonReturn else { return }
             // Revalidate against current state after the modal loop (the timer may have advanced).
             _ = merged
             let storeURL = (app.research.repository as? SQLiteResearchStore)?.url
@@ -330,9 +330,7 @@ final class ResearchWorkspaceWindowController: NSWindowController, NSTableViewDa
 }
 
 
-private final class ResearchSurface: NSView {
-    override func draw(_ dirtyRect: NSRect) { NSColor.windowBackgroundColor.setFill(); bounds.fill() }
-}
+private final class ResearchSurface: StarfieldSurface {}
 
 
 private final class ResearchFormDocument: NSView {

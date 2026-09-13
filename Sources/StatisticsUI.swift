@@ -6,7 +6,7 @@ extension AppDelegate {
         if statisticsWindow == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1040, height: 650), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
             window.title = "时间记录 · 番茄时光"
-            window.appearance = NSAppearance(named: .aqua)
+            window.appearance = NSAppearance(named: .darkAqua)
             window.minSize = NSSize(width: 980, height: 530)
             window.isReleasedWhenClosed = false
             let board = StatisticsBoard(delegate: self)
@@ -15,7 +15,7 @@ extension AppDelegate {
             statisticsBoard = board
             statisticsDate = board.date
             statisticsWindow = window
-            AppFont.apply(to: board)
+            AppFont.apply(to: board); StarGlass.apply(to: board)
             window.center()
         }
         refreshStatistics()
@@ -50,14 +50,14 @@ extension AppDelegate {
         alert.accessoryView = stack
         alert.addButton(withTitle: "保存")
         alert.addButton(withTitle: "取消")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        guard alert.runGlassModal() == .alertFirstButtonReturn else { return }
         let entry = Activity(task: task.stringValue.trimmingCharacters(in: .whitespacesAndNewlines), category: category.titleOfSelectedItem!, start: start.dateValue, end: end.dateValue, reason: "手动补记")
         if researchAction({ try research.importActivities([entry], now: Date()) }) { refreshStatistics() }
         else {
             let warning = NSAlert()
             warning.messageText = "未保存"
             warning.informativeText = "请检查任务名、起止时间和是否与已有记录重叠。"
-            warning.runModal()
+            warning.runGlassModal()
         }
     }
 
@@ -102,7 +102,7 @@ extension AppDelegate {
             alert.accessoryView = scroll
             alert.addButton(withTitle: "确认导入")
             alert.addButton(withTitle: "取消")
-            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            guard alert.runGlassModal() == .alertFirstButtonReturn else { return }
             let entries = batch.entries.map { Activity(task: $0.task, category: $0.category, start: $0.start, end: $0.end, reason: batch.source == "ai" ? "AI补记" : "导入补记") }
             try research.importActivities(entries, now: Date())
             workspace?.reload()

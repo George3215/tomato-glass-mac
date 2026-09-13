@@ -72,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } catch {
             let alert = NSAlert(); alert.messageText = "科研数据未能打开"
             alert.informativeText = error.localizedDescription + "\n原数据不会被覆盖。请保留 Application Support 中的备份。"
-            alert.runModal(); NSApp.terminate(nil); return
+            alert.runGlassModal(); NSApp.terminate(nil); return
         }
         status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         status.button?.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
@@ -296,7 +296,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         reminderWindow = alert.window
         applyTransparency()
         alert.window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
-        let response = alert.runModal()
+        let response = alert.runGlassModal()
         if !note.stringValue.isEmpty, let id = finishedID {
             _ = researchAction { try research.change { state in
                 if let i = state.sessions.firstIndex(where: { $0.id == id }) { state.sessions[i].note.text = note.stringValue }
