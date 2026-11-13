@@ -12,7 +12,7 @@
 
 ## 🐧 Linux 版
 
-Linux 用户请看 [linux/README.md](linux/README.md)（Python + Tkinter 轻量番茄钟）。
+Linux 用户请看 [linux/README.md](linux/README.md)（界面与 Mac 版一致的 Python + Tkinter 版本）。
 
 ## Agent Studio · 1.11
 
