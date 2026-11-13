@@ -709,7 +709,9 @@ class TomatoGlass:
 
 def main():
     install_fonts()
-    root = tk.Tk()
+    root = tk.Tk(className="TomatoGlass")
+    root._icon = ImageTk.PhotoImage(tomato_icon(128))
+    root.iconphoto(True, root._icon)
     TomatoGlass(root)
     root.mainloop()
 

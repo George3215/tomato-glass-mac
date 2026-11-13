@@ -19,10 +19,21 @@ sudo apt install python3-tk python3-pil python3-pil.imagetk libnotify-bin
 python3 linux/tomato_glass.py      # 需在仓库内运行，以读取 Resources/ 中的壁纸和字体
 ```
 
-## 安装到应用菜单
+## 安装（点击图标即可使用）
+
+方式一：安装包（推荐，Ubuntu/Debian）
+
+```bash
+bash linux/build-deb.sh                                  # 生成 dist/tomato-glass_<版本>_all.deb
+sudo apt install ./dist/tomato-glass_*_all.deb           # 也可以在文件管理器里双击 .deb 安装
+```
+
+方式二：只装给当前用户（无需 sudo），会同时在桌面放一个快捷方式
 
 ```bash
 bash linux/install.sh
 ```
+
+装好后在应用菜单搜索「番茄时光」，或双击桌面图标（首次如提示，右键选「允许启动」）。
 
 数据：`~/.local/share/tomato-glass/records.json`，设置：`~/.config/tomato-glass/settings.json`。
