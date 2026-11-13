@@ -10,6 +10,10 @@
 
 **[↓ 下载 macOS 安装包](https://github.com/George3215/tomato-glass-mac/releases/latest)** · [版本说明](https://github.com/George3215/tomato-glass-mac/releases) · [检索摘要](llms.txt)
 
+## 🐧 Linux 版
+
+Linux 用户请看 [linux/README.md](linux/README.md)（Python + Tkinter 轻量番茄钟）。
+
 ## Agent Studio · 1.11
 
 与 AI 聊天并保存积累：支持 Chat Completions 兼容接口和外部 Agent JSON 导入。AI 提案可创建 / 修改任务、生成可编辑展板；先预览再应用，聊天、复盘笔记和操作时间进入完整备份。流程图滚动方向已反转，箭头采用加粗圆角 Lucide 样式。
