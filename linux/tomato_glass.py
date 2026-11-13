@@ -17,7 +17,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 try:
-    from PIL import Image, ImageDraw, ImageFilter, ImageTk
+    from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageTk
 except ImportError:  # pragma: no cover
     raise SystemExit("需要 Pillow：sudo apt install python3-pil python3-pil.imagetk  或  pip install pillow")
 
@@ -108,7 +108,7 @@ class Glass:
 
     def __init__(self, base):
         self.base = base.convert("RGBA")
-        self.cards, self.shapes = [], []
+        self.cards, self.shapes, self.buttons, self.fields = [], [], [], []
 
     def card(self, rect, radius=24):
         self.cards.append((rect, radius))
@@ -116,11 +116,60 @@ class Glass:
     def shape(self, rect, fill, outline=None, radius=6):
         self.shapes.append((rect, fill, outline, radius))
 
+    def button(self, rect, radius=6, strong=False):
+        """macOS 深色外观下的磨砂按钮：模糊+去饱和的背景、灰白色调、上亮下暗、柔和投影、无描边。"""
+        self.buttons.append((rect, radius, strong))
+
+    def field(self, rect, radius=7):
+        """输入框：略暗的磨砂凹槽 + 细高光边。"""
+        self.fields.append((rect, radius))
+
+    def _frost_fields(self, img):
+        for (x0, y0, x1, y1), r in self.fields:
+            w, h = x1 - x0, y1 - y0
+            region = ImageEnhance.Color(img.crop((x0, y0, x1, y1)).filter(ImageFilter.GaussianBlur(3))).enhance(0.6)
+            region = Image.alpha_composite(region, Image.new("RGBA", (w, h), (18, 24, 40, 70)))
+            img.paste(region, (x0, y0), rounded_mask((w, h), r))
+            ol = Image.new("RGBA", (w * 3, h * 3), (0, 0, 0, 0))
+            ImageDraw.Draw(ol).rounded_rectangle((0, 0, w * 3 - 1, h * 3 - 1), r * 3, outline=(255, 255, 255, 55), width=3)
+            img.alpha_composite(ol.resize((w, h), Image.LANCZOS), (x0, y0))
+        return img
+
+    def _frost_buttons(self, img):
+        for (x0, y0, x1, y1), r, strong in self.buttons:
+            w, h = x1 - x0, y1 - y0
+            # 柔和投影
+            sh = Image.new("RGBA", (w + 16, h + 16), (0, 0, 0, 0))
+            ImageDraw.Draw(sh).rounded_rectangle((8, 9, w + 8, h + 9), r, fill=(10, 16, 32, 45))
+            img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(2.5)), (x0 - 8, y0 - 8))
+            # 磨砂本体
+            pad = 12
+            src = img.crop((x0 - pad, y0 - pad, x1 + pad, y1 + pad)).filter(ImageFilter.GaussianBlur(3))
+            region = ImageEnhance.Color(src.crop((pad, pad, pad + w, pad + h))).enhance(0.55)
+            tint = Image.new("RGBA", (w, h), (220, 224, 232, 92 if strong else 80))
+            region = Image.alpha_composite(region, tint)
+            # 上亮下暗的光泽
+            gloss = Image.new("RGBA", (1, h))
+            for yy in range(h):
+                t = yy / max(1, h - 1)
+                gloss.putpixel((0, yy), (255, 255, 255, round(26 * (1 - t) ** 1.5)))
+            region = Image.alpha_composite(region, gloss.resize((w, h)))
+            img.paste(region, (x0, y0), rounded_mask((w, h), r))
+            # 顶部 1px 高光
+            hl = Image.new("RGBA", (w * 3, h * 3), (0, 0, 0, 0))
+            ImageDraw.Draw(hl).rounded_rectangle((0, 0, w * 3 - 1, h * 3 - 1), r * 3, outline=(255, 255, 255, 60), width=2)
+            hl = hl.resize((w, h), Image.LANCZOS)
+            hl.putalpha(Image.composite(hl.getchannel("A"), Image.new("L", (w, h), 0),
+                                        Image.linear_gradient("L").rotate(180).resize((w, h))))
+            img.alpha_composite(hl, (x0, y0))
+        return img
+
     def render(self):
         img = self.base.copy()
         blurred = self.base.filter(ImageFilter.GaussianBlur(2.5))
         for (x0, y0, x1, y1), r in self.cards:
             region = blurred.crop((x0, y0, x1, y1))
+            region = ImageEnhance.Color(region).enhance(0.75)
             region = Image.alpha_composite(region, Image.new("RGBA", region.size, (205, 210, 228, 62)))
             img.paste(region, (x0, y0), rounded_mask(region.size, r))
         ss = self.SS
@@ -132,7 +181,7 @@ class Glass:
             d.rounded_rectangle((x0 * ss, y0 * ss, x1 * ss - 1, y1 * ss - 1), r * ss, fill=fill,
                                 outline=outline, width=ss if outline else 0)
         img = Image.alpha_composite(img, over.resize(img.size, Image.LANCZOS))
-        return img
+        return self._frost_buttons(self._frost_fields(img))
 
 
 def tomato_icon(size=22):
@@ -227,8 +276,7 @@ class TomatoGlass:
     def button(self, x, y, text, cmd, w=None, h=24, size=13, primary=False, popup=False):
         w = w or self.btn_width(text, size, 40 if popup else 24)
         rect = (int(x), int(y), int(x + w), int(y + h))
-        fill = PURPLE + (235,) if primary else (255, 255, 255, 52)
-        self.glass.shape(rect, fill, (255, 255, 255, 70), 7 if h > 24 else 6)
+        self.glass.button(rect, 7 if h > 24 else 6, primary)
         tx = x + 12 if popup else x + w / 2
         t = self.canvas.create_text(tx, y + h / 2, text=text, fill=TEXT, font=self.font(size),
                                     anchor="w" if popup else "center")
@@ -290,7 +338,8 @@ class TomatoGlass:
             r, g, b, _ = img.crop(rect).resize((1, 1), Image.BOX).getpixel((0, 0))
             col = f"#{r:02x}{g:02x}{b:02x}"
             if isinstance(widget, ttk.Combobox):
-                self.style.configure("Glass.TCombobox", fieldbackground=col, background=col)
+                self.style.configure("Glass.TCombobox", fieldbackground=col, background=col,
+                                     bordercolor=col, lightcolor=col, darkcolor=col)
                 self.style.map("Glass.TCombobox", fieldbackground=[("readonly", col), ("disabled", col)])
             else:
                 widget.configure(bg=col, disabledbackground=col)
@@ -300,8 +349,8 @@ class TomatoGlass:
         c, g = self.canvas, self.glass
         self.style = ttk.Style(self.root)
         self.style.theme_use("clam")
-        self.style.configure("Glass.TCombobox", foreground=TEXT, arrowcolor=TEXT, bordercolor="#9aa0b4",
-                             lightcolor="#9aa0b4", darkcolor="#9aa0b4", selectbackground="#7a6aa8",
+        self.style.configure("Glass.TCombobox", foreground=TEXT, arrowcolor=TEXT, borderwidth=0,
+                             selectbackground="#7a6aa8",
                              insertcolor=TEXT, padding=3)
         self.style.map("Glass.TCombobox", foreground=[("disabled", MUTED)])
         self.root.option_add("*TCombobox*Listbox.font", self.font(13))
@@ -324,9 +373,10 @@ class TomatoGlass:
         self.task_var = tk.StringVar(value=self.title_)
         self.task_box = ttk.Combobox(self.root, textvariable=self.task_var, values=tasks, style="Glass.TCombobox",
                                      font=self.font(13))
-        c.create_window(cx, y, window=self.task_box, anchor="n", width=430, height=26)
+        self.glass.field((int(cx - 215), y, int(cx + 215), y + 28))
+        c.create_window(cx - 4, y + 4, window=self.task_box, anchor="n", width=414, height=20)
         self._widgets.append(self.task_box)
-        self._fields.append((self.task_box, (int(cx - 215), y + 4, int(cx + 215), y + 22)))
+        self._fields.append((self.task_box, (int(cx - 205), y + 6, int(cx + 195), y + 22)))
         if not self.task_var.get():
             self.task_box.set("")
         y += 26 + 16
@@ -354,14 +404,15 @@ class TomatoGlass:
         y += 24 + 13
         self.label(x, y, "自定义时长", 12, muted=True)
         y += 16 + 13
-        self.minutes_var = tk.StringVar(value=str(int(self.duration // 60)))
+        self.minutes_var = tk.StringVar(value=str(max(1, int(self.duration // 60))))
         ent = tk.Entry(self.root, textvariable=self.minutes_var, justify="center", relief="flat", bd=0,
                        fg=TEXT, insertbackground=TEXT, font=tkfont.Font(family=self.timer_family, size=-22),
-                       highlightthickness=1, highlightbackground="#a8adbf", highlightcolor="#d9b4d8")
+                       highlightthickness=0)
         ent.bind("<Return>", lambda e: self.start_custom())
-        c.create_window(x, y, window=ent, anchor="nw", width=74, height=32)
+        self.glass.field((x, y, x + 74, y + 32))
+        c.create_window(x + 6, y + 4, window=ent, anchor="nw", width=62, height=24)
         self._widgets.append(ent)
-        self._fields.append((ent, (x + 3, y + 3, x + 71, y + 29)))
+        self._fields.append((ent, (x + 8, y + 6, x + 66, y + 26)))
         self.minutes_entry = ent
         self.label(x + 84, y + 16, "分钟", 13, muted=True, anchor="w")
         y += 32 + 11
@@ -625,8 +676,8 @@ class TomatoGlass:
         gl = Glass(base)
         gl.card((16, 16, 364, 184), 20)
         bw = 92
-        gl.shape((380 / 2 - bw - 6, 132, 380 / 2 - 6, 160), PURPLE + (235,), (255, 255, 255, 70), 7)
-        gl.shape((380 / 2 + 6, 132, 380 / 2 + 6 + bw, 160), (255, 255, 255, 52), (255, 255, 255, 70), 7)
+        gl.button((380 // 2 - bw - 6, 132, 380 // 2 - 6, 160), 7, True)
+        gl.button((380 // 2 + 6, 132, 380 // 2 + 6 + bw, 160), 7)
         win._img = ImageTk.PhotoImage(gl.render())
         cv.create_image(0, 0, image=win._img, anchor="nw")
         cv.create_text(190, 54, text="时间到啦", fill=TEXT, font=self.font(22, True))
